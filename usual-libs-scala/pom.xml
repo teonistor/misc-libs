@@ -12,6 +12,13 @@
     <artifactId>usual-libs-scala</artifactId>
     <packaging>pom</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
