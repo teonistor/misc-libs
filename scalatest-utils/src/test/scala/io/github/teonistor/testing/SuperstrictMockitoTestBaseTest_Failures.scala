@@ -5,12 +5,12 @@ import org.mockito.exceptions.base.MockitoException
 import org.scalactic.source.Position
 import org.scalatest.Tag
 
-class SuperstrictMockitoTestBaseTest_Assisted extends SuperstrictMockitoTestBase {
+class SuperstrictMockitoTestBaseTest_Failures extends SuperstrictMockitoTestBase {
 
-  private var beforeMockitoTestHasRun: Boolean=_
-  private var afterMockitoTestHasRun: Boolean=_
+  private var beforeMockitoTestHasRun: Boolean =_
+  private var afterMockitoTestHasRun: Boolean =_
 
-  override protected def beforeEach(): Unit = {
+  override def beforeEach(): Unit = {
     beforeMockitoTestHasRun = false
     afterMockitoTestHasRun = false
   }
@@ -291,14 +291,14 @@ class SuperstrictMockitoTestBaseTest_Assisted extends SuperstrictMockitoTestBase
     afterMockitoTestHasRun = true
   }
 
-  override protected def afterEach(): Unit = {
+  override def afterEach(): Unit = {
     assert(beforeMockitoTestHasRun)
     assert(afterMockitoTestHasRun)
   }
 }
 
 // Uncomment and use responsibly
-object SuperstrictMockitoTestBaseTest_Assisted {
+object SuperstrictMockitoTestBaseTest_Failures {
   def main(arg: Array[String]): Unit = {
     println((1 to SuperstrictMockitoTestBase.howManyBlocks)
       .map(generateCode)
