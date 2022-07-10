@@ -28,13 +28,27 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
+        <guava.version>31.1-jre</guava.version>
         <jackson.version>2.13.2</jackson.version>
+        <jfreesvg.version>3.4.3</jfreesvg.version>
         <scala.version>2.13.8</scala.version>
+        <vavr.version>0.10.4</vavr.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
 
+            <dependency>
+                <groupId>io.github.teonistor</groupId>
+                <artifactId>scalatest-utils</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
@@ -56,9 +70,19 @@
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.jfree</groupId>
+                <artifactId>jfreesvg</artifactId>
+                <version>${jfreesvg.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
                 <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.vavr</groupId>
+                <artifactId>vavr</artifactId>
+                <version>${vavr.version}</version>
             </dependency>
 
             <dependency>
