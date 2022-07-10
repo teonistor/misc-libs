@@ -136,27 +136,27 @@ class SuperstrictMockitoTestBase extends AnyFunSuite with MockitoSugar with Argu
 }
 
 // Uncomment and use responsibly
-object SuperstrictMockitoTestBase {
-  val howManyBlocks = 15
-
-  def main(arg: Array[String]): Unit = {
-    println((1 to howManyBlocks)
-      .map(generateCode)
-      .mkString("\n"))
-  }
-
-  private def generateCode(howManyParams: Int): String = {
-    val types = (1 to howManyParams).map(i => s"T$i <: AnyRef").mkString(", ")
-    val classes = (1 to howManyParams).map(i => s"c$i: Class[T$i]").mkString(", ")
-    val args = (1 to howManyParams).map(i => s"T$i").mkString(", ")
-    val mocks = (1 to howManyParams).map(i => s"mocc(c$i)").mkString(", ")
-
-    s"""  def mockitoTest[$types](name: String, $classes, tags: Tag*)(body: ($args) => Any)(implicit pos: Position): Unit =
-       |    test(name, tags: _*)(MockitoScalaSession() run {
-       |      beforeMockitoTest()
-       |      body($mocks)
-       |      afterMockitoTest()
-       |    })(pos)
-       |""".stripMargin
-  }
-}
+//object SuperstrictMockitoTestBase {
+//  val howManyBlocks = 15
+//
+//  def main(arg: Array[String]): Unit = {
+//    println((1 to howManyBlocks)
+//      .map(generateCode)
+//      .mkString("\n"))
+//  }
+//
+//  private def generateCode(howManyParams: Int): String = {
+//    val types = (1 to howManyParams).map(i => s"T$i <: AnyRef").mkString(", ")
+//    val classes = (1 to howManyParams).map(i => s"c$i: Class[T$i]").mkString(", ")
+//    val args = (1 to howManyParams).map(i => s"T$i").mkString(", ")
+//    val mocks = (1 to howManyParams).map(i => s"mocc(c$i)").mkString(", ")
+//
+//    s"""  def mockitoTest[$types](name: String, $classes, tags: Tag*)(body: ($args) => Any)(implicit pos: Position): Unit =
+//       |    test(name, tags: _*)(MockitoScalaSession() run {
+//       |      beforeMockitoTest()
+//       |      body($mocks)
+//       |      afterMockitoTest()
+//       |    })(pos)
+//       |""".stripMargin
+//  }
+//}

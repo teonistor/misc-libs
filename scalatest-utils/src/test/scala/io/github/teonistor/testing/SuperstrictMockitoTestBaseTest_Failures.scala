@@ -298,31 +298,31 @@ class SuperstrictMockitoTestBaseTest_Failures extends SuperstrictMockitoTestBase
 }
 
 // Uncomment and use responsibly
-object SuperstrictMockitoTestBaseTest_Failures {
-  def main(arg: Array[String]): Unit = {
-    println((1 to SuperstrictMockitoTestBase.howManyBlocks)
-      .map(generateCode)
-      .mkString("\n\n"))
-  }
-
-  private def generateCode(howManyParams: Int): String ={
-    val classes = ", classOf[String => String]" * howManyParams
-    val extraArgs = ", _" * (howManyParams - 1)
-
-    s"""  mockitoTest("Assisted Mockito with $howManyParams mocks complains about unused stubs"$classes)((func$extraArgs) => {
-       |    assert(beforeMockitoTestHasRun)
-       |    assert(!afterMockitoTestHasRun)
-       |    given(func("Banana")).willReturn("Split")
-       |  })
-       |
-       |  mockitoTest("Assisted Mockito with $howManyParams mocks complains about misstubbing"$classes)((func$extraArgs) => {
-       |    given(func("Banana")).willReturn("Split")
-       |    assert(func("Apple") == null)
-       |  })
-       |
-       |  mockitoTest("Assisted Mockito with $howManyParams mocks complains about extra interactions"$classes)((func$extraArgs) => {
-       |    assert(func("Apple") == null)
-       |  })
-       |""".stripMargin
-  }
-}
+//object SuperstrictMockitoTestBaseTest_Failures {
+//  def main(arg: Array[String]): Unit = {
+//    println((1 to SuperstrictMockitoTestBase.howManyBlocks)
+//      .map(generateCode)
+//      .mkString("\n\n"))
+//  }
+//
+//  private def generateCode(howManyParams: Int): String ={
+//    val classes = ", classOf[String => String]" * howManyParams
+//    val extraArgs = ", _" * (howManyParams - 1)
+//
+//    s"""  mockitoTest("Assisted Mockito with $howManyParams mocks complains about unused stubs"$classes)((func$extraArgs) => {
+//       |    assert(beforeMockitoTestHasRun)
+//       |    assert(!afterMockitoTestHasRun)
+//       |    given(func("Banana")).willReturn("Split")
+//       |  })
+//       |
+//       |  mockitoTest("Assisted Mockito with $howManyParams mocks complains about misstubbing"$classes)((func$extraArgs) => {
+//       |    given(func("Banana")).willReturn("Split")
+//       |    assert(func("Apple") == null)
+//       |  })
+//       |
+//       |  mockitoTest("Assisted Mockito with $howManyParams mocks complains about extra interactions"$classes)((func$extraArgs) => {
+//       |    assert(func("Apple") == null)
+//       |  })
+//       |""".stripMargin
+//  }
+//}

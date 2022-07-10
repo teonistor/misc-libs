@@ -1,7 +1,5 @@
 package io.github.teonistor.testing
 
-import org.apache.commons.lang3.RandomStringUtils.randomAlphabetic
-import org.apache.commons.lang3.RandomUtils.{nextBoolean, nextInt}
 import org.mockito.BDDMockito.given
 
 class SuperstrictMockitoTestBaseTest_Successes extends SuperstrictMockitoTestBase {
@@ -328,37 +326,37 @@ class SuperstrictMockitoTestBaseTest_Successes extends SuperstrictMockitoTestBas
 }
 
 // Uncomment and use responsibly
-object SuperstrictMockitoTestBaseTest_Successes {
-  def main(arg: Array[String]): Unit = {
-    println((1 to SuperstrictMockitoTestBase.howManyBlocks)
-      .map(generateCode)
-      .mkString("\n"))
-  }
-
-  private def generateCode(howManyParams: Int): String ={
-    val things = (1 to howManyParams).map(_=> generateTwoThings())
-
-    val classes = things.map(thing => s", classOf[${thing._1} => ${thing._2}]").mkString
-    val args = (1 to howManyParams).map(i => s"func$i").mkString(", ")
-    val givens = (0 until howManyParams).map(i => s"    given(func${i+1}(${things(i)._3})).willReturn(${things(i)._4})").mkString("\n")
-    val asserts = (0 until howManyParams).map(i => s"    assert(func${i+1}(${things(i)._3}) == ${things(i)._4})").mkString("\n")
-
-    s"""  mockitoTest("Assisted Mockito with $howManyParams mocks"$classes)(($args) => {
-       |$givens
-       |
-       |$asserts
-       |  })
-       |""".stripMargin
-  }
-
-  private def generateTwoThings() = {
-    val ((one, three), (two, four)) = (generateThing(), generateThing())
-    (one, two, three, four)
-  }
-
-  private def generateThing() =
-    if (nextBoolean())
-      ("Int", nextInt(10, 1000).toString)
-    else
-      ("String", s"\"${randomAlphabetic(7)}\"")
-}
+//object SuperstrictMockitoTestBaseTest_Successes {
+//  def main(arg: Array[String]): Unit = {
+//    println((1 to SuperstrictMockitoTestBase.howManyBlocks)
+//      .map(generateCode)
+//      .mkString("\n"))
+//  }
+//
+//  private def generateCode(howManyParams: Int): String ={
+//    val things = (1 to howManyParams).map(_=> generateTwoThings())
+//
+//    val classes = things.map(thing => s", classOf[${thing._1} => ${thing._2}]").mkString
+//    val args = (1 to howManyParams).map(i => s"func$i").mkString(", ")
+//    val givens = (0 until howManyParams).map(i => s"    given(func${i+1}(${things(i)._3})).willReturn(${things(i)._4})").mkString("\n")
+//    val asserts = (0 until howManyParams).map(i => s"    assert(func${i+1}(${things(i)._3}) == ${things(i)._4})").mkString("\n")
+//
+//    s"""  mockitoTest("Assisted Mockito with $howManyParams mocks"$classes)(($args) => {
+//       |$givens
+//       |
+//       |$asserts
+//       |  })
+//       |""".stripMargin
+//  }
+//
+//  private def generateTwoThings() = {
+//    val ((one, three), (two, four)) = (generateThing(), generateThing())
+//    (one, two, three, four)
+//  }
+//
+//  private def generateThing() =
+//    if (nextBoolean())
+//      ("Int", nextInt(10, 1000).toString)
+//    else
+//      ("String", s"\"${randomAlphabetic(7)}\"")
+//}
