@@ -28,6 +28,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+            <!-- TODO Bring the quibble to Rhys's attention :) -->
             <scope>test</scope>
         </dependency>
     </dependencies>
