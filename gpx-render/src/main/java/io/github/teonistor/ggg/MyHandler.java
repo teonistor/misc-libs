@@ -15,7 +15,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -25,6 +24,10 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 
 public class MyHandler implements RequestHandler<S3EventNotification, Void> {
+
+    private static final NameDecoder nameDecoder = new NameDecoder();
+    private static final Pattern fileNamePattern = Pattern.compile("(.+)\\.kml");
+    private static final Pattern bucketNamePattern = Pattern.compile("(.+)-in");
 
     @Override
     public Void handleRequest(final S3EventNotification s3EventNotification, final Context context) {
@@ -41,22 +44,37 @@ public class MyHandler implements RequestHandler<S3EventNotification, Void> {
     }
 
     private ProcessingStats handleOne(final S3EventNotificationRecord record) {
-        final String inputFileName = record.getS3().getObject().getKey();
-        final Optional<String> outputFileName = Optional.of(Pattern.compile("(.+)\\.kml").matcher(inputFileName))
-                .filter(Matcher::matches)
-                .map(m -> m.group(1) + ".html");
-        if (outputFileName.isEmpty())
+        final String inputFileName = nameDecoder.apply(record.getS3().getObject().getKey());
+        final Optional<String> outputFileName = matchNameAndConvert(inputFileName, fileNamePattern, ".html");
+        if (outputFileName.isEmpty()) {
+            System.out.printf("Skipping %s due to name not matched\n", inputFileName);
             return new ProcessingStats(0, 0, 1, 0);
+        }
 
-        final String inputBucketName = record.getS3().getBucket().getName();
-        final Optional<String> outputBucketName = Optional.of(Pattern.compile("(.+)-in").matcher(inputBucketName))
-                .filter(Matcher::matches)
-                .map(m -> m.group(1) + "-out");
-        if (outputBucketName.isEmpty())
+        final String inputBucketName = nameDecoder.apply(record.getS3().getBucket().getName());
+        final Optional<String> outputBucketName = matchNameAndConvert(inputBucketName, bucketNamePattern, "-out");
+        if (outputBucketName.isEmpty()) {
+            System.err.printf("Error processing %s in %s: input bucket name not matched\n", inputFileName, inputBucketName);
             return new ProcessingStats(0, 0, 0, 1);
+        }
 
-        // Based on names like 20220604-160639 - Talbot, Poole circ.kml
-        final S3Client s3 = S3Client.builder().build();
+        try (S3Client s3 = S3Client.builder().build()) {
+            return doHandle(s3, inputFileName, outputFileName.get(), inputBucketName, outputBucketName.get());
+
+        } catch (final Exception e) {
+            System.err.printf("Error processing %s in %s\n", inputFileName, inputBucketName);
+            e.printStackTrace();
+            return new ProcessingStats(0, 0, 0, 1);
+        }
+    }
+
+    private Optional<String> matchNameAndConvert(String inputName, Pattern pattern, String newSuffix) {
+        return Optional.of(pattern.matcher(inputName))
+                .filter(Matcher::matches)
+                .map(m -> m.group(1) + newSuffix);
+    }
+
+    private ProcessingStats doHandle(S3Client s3, String inputFileName, String outputFileName, String inputBucketName, String outputBucketName) throws Exception {
         final List<String> additionalFiles = Stream.of(Pattern.compile("(^.+?-)").matcher(inputFileName))
                 .filter(Matcher::find)
                 .map(m -> m.group(1))
@@ -71,9 +89,6 @@ public class MyHandler implements RequestHandler<S3EventNotification, Void> {
 
         System.out.println("Would process the following when implemented: " + additionalFiles);
         System.out.println("The current key as given: " + inputFileName);
-
-        final String outputBucketNam = outputBucketName.get();
-        final String outputFileNam = outputFileName.get();
 
         try (final ResponseInputStream<GetObjectResponse> response = s3.getObject(GetObjectRequest.builder()
                 .bucket(inputBucketName)
@@ -91,16 +106,13 @@ public class MyHandler implements RequestHandler<S3EventNotification, Void> {
                     .orElse(returned);
 
             final PutObjectResponse putObjectResponse = s3.putObject(PutObjectRequest.builder()
-                            .bucket(outputBucketNam)
-                            .key(outputFileNam)
+                            .bucket(outputBucketName)
+                            .key(outputFileName)
                             .build(),
                     RequestBody.fromString(outputFileContents));
 
             return new ProcessingStats(1, additionalFiles.size(), 0, 0);
 
-        } catch (final IOException e) {
-            e.printStackTrace();
-            return new ProcessingStats(0, 0, 0, 1);
         }
     }
 }
