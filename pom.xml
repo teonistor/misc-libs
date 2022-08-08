@@ -16,6 +16,8 @@
     <description>Miscellaneous libraries falling out of toy projects</description>
 
     <modules>
+        <module>gpx-render</module>
+        <module>poor-mans-pipeline</module>
         <module>scalatest-utils</module>
         <module>stream-utils</module>
         <module>usual-libs-testing</module>
