@@ -5,7 +5,7 @@
     <parent>
         <artifactId>usual-libs-scala</artifactId>
         <groupId>io.github.teonistor</groupId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
         <relativePath>../usual-libs-scala</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
