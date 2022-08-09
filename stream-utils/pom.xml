@@ -5,11 +5,10 @@
     <parent>
         <groupId>io.github.teonistor</groupId>
         <artifactId>usual-suspects</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>stream-utils</artifactId>
-    <version>1.0.0</version>
     <name>Stream utils</name>
     <packaging>jar</packaging>
     <description>Unuseful library</description>

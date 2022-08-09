@@ -15,7 +15,6 @@
     <description>Miscellaneous libraries falling out of toy projects</description>
 
     <modules>
-        <module>gpx-render</module>
         <module>poor-mans-pipeline</module>
         <module>scalatest-utils</module>
         <module>stream-utils</module>
@@ -42,7 +41,7 @@
             <dependency>
                 <groupId>io.github.teonistor</groupId>
                 <artifactId>scalatest-utils</artifactId>
-                <version>1.0.0</version>
+                <version>1.0.1-SNAPSHOT</version>
             </dependency>
 
             <dependency>
