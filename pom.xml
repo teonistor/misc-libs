@@ -36,6 +36,7 @@
         <flexmark.version>0.64.0</flexmark.version>
         <mockito-scala.version>1.17.12</mockito-scala.version>
         <scalatest.version>3.2.12</scalatest.version>
+        <jjwt.version>0.9.1</jjwt.version>
     </properties>
 
     <dependencyManagement>
@@ -91,6 +92,11 @@
                 <groupId>org.jfree</groupId>
                 <artifactId>jfreesvg</artifactId>
                 <version>${jfreesvg.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${jjwt.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
