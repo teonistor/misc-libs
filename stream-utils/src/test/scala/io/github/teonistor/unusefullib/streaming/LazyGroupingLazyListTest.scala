@@ -1,8 +1,8 @@
 package io.github.teonistor.unusefullib.streaming
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class LazyGroupingLazyListTest extends FunSuite {
+class LazyGroupingLazyListTest extends AnyFunSuite {
 
   /*test("Aaa") {
 

@@ -3,29 +3,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>usual-libs-scala</artifactId>
         <groupId>io.github.teonistor</groupId>
+        <artifactId>usual-libs-scalatest</artifactId>
         <version>1.0.1-SNAPSHOT</version>
-        <relativePath>../usual-libs-scala</relativePath>
+        <relativePath>../usual-libs-scalatest</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>poor-mans-pipeline</artifactId>
 
-    <dependencyManagement>
-       <dependencies>
-           <dependency>
-               <groupId>io.github.teonistor</groupId>
-               <artifactId>usual-libs-testing</artifactId>
-               <version>1.0.1-SNAPSHOT</version>
-               <classifier>pom</classifier>
-               <scope>import</scope>
-           </dependency>
-       </dependencies>
-    </dependencyManagement>
-
     <dependencies>
-
         <dependency>
             <groupId>org.rogach</groupId>
             <artifactId>scallop_2.12</artifactId>
@@ -35,6 +22,5 @@
             <groupId>io.vavr</groupId>
             <artifactId>vavr</artifactId>
         </dependency>
-
     </dependencies>
 </project>
