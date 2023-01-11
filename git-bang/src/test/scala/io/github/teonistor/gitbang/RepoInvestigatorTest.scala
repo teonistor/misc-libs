@@ -3,7 +3,7 @@ package io.github.teonistor.gitbang
 import io.github.teonistor.testing.SuperstrictMockitoTestBase
 import org.mockito.BDDMockito.`given`
 
-class RepoHandlerTest extends SuperstrictMockitoTestBase {
+class RepoInvestigatorTest extends SuperstrictMockitoTestBase {
 
   mockitoTest("checked out no fetch", classOf[Runner]) (runner => {
     given(runner.run("git", "remote")).willReturn("origin")
@@ -13,7 +13,7 @@ class RepoHandlerTest extends SuperstrictMockitoTestBase {
     given(runner.run("git", "diff", "--compact-summary", "origin/develop...feature/1234")).willReturn(" 1 file changed, 1 insertion(+)")
     given(runner.run("git", "diff", "--compact-summary", "origin/develop...feature/5678")).willReturn("")
 
-    assert(new RepoHandler(runner, false).call() ==
+    assert(new RepoInvestigator(runner, false).call() ==
            RepoInvestigation(Some("origin/develop"), Some("feature/0000"), List("feature/5678"), List("feature/1234")))
   })
 
@@ -25,7 +25,7 @@ class RepoHandlerTest extends SuperstrictMockitoTestBase {
     given(runner.run("git", "diff", "--compact-summary", "origin/master...feature/1234")).willReturn(" 1 file changed, 1 insertion(+)")
     given(runner.run("git", "diff", "--compact-summary", "origin/master...feature/5678")).willReturn("")
 
-    assert(new RepoHandler(runner, true).call() ==
+    assert(new RepoInvestigator(runner, true).call() ==
       RepoInvestigation(Some("origin/master"), None, List("feature/5678"), List("feature/1234")))
   })
 
@@ -36,7 +36,7 @@ class RepoHandlerTest extends SuperstrictMockitoTestBase {
     given(runner.run("git", "diff", "--compact-summary", "origin/devel...feature/apple")).willReturn("")
     given(runner.run("git", "diff", "--compact-summary", "origin/devel...feature/banana")).willReturn(" 1 file changed, 1 deletion(-)")
 
-    assert(new RepoHandler(runner, false).call() ==
+    assert(new RepoInvestigator(runner, false).call() ==
       RepoInvestigation(Some("origin/devel"), None, List("feature/apple"), List("feature/banana")))
   })
 }

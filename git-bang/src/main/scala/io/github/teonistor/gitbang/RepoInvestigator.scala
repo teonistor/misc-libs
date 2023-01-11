@@ -2,7 +2,7 @@ package io.github.teonistor.gitbang
 
 import java.util.concurrent.Callable
 
-class RepoHandler (
+class RepoInvestigator(
       runner: Runner,
       fetch: Boolean) extends Callable[RepoInvestigation] {
 
