@@ -28,27 +28,8 @@ class RepoHandler (
         val localBranchesByDeleteByCheckedOut = runner.run("git", "branch")
           .split("\n").to(List)
           .groupMap(_.startsWith("*"))(_.substring(1).strip()).to(List)
-          .flatMap(kv => {
-            val (checkedOut, branches) = kv
-            branches.map(branch => {
-
-              val toDel = runner.run("git", "diff", "--compact-summary", productionBranch + "..." + branch)
-                .strip().isEmpty
-              val key = if (toDel) "toDelete"
-                else if (checkedOut) "checkedout"
-                else "toKeep"
-
-              (key, branch)
-            })
-          })
+          .flatMap(keyify(productionBranch).tupled)
           .groupMap(_._1)(_._2)
-
-//          .map(kv => (kv._1, kv._2.groupBy(branch =>
-//            runner.run("git", "diff", "--compact-summary", productionBranch + "..." + branch)
-//              .strip().isEmpty)))
-
-//          .map(_.strip())
-//          .groupBy(branch => runner.run("git", "diff", "--compact-summary", productionBranch + "..." + branch).strip().isEmpty)
 
         RepoInvestigation(
           Some(productionBranch),
@@ -58,4 +39,14 @@ class RepoHandler (
       })
       .getOrElse(RepoInvestigation(None, None, List.empty, List.empty))
   }
+
+  private def keyify(productionBranch: String) =
+    (checkedout: Boolean, branches: List[String]) =>
+      branches.map(branch =>
+
+        ((if (runner.run("git", "diff", "--compact-summary", productionBranch + "..." + branch)
+          .strip().isEmpty) "toDelete"
+        else if (checkedout) "checkedout"
+        else "toKeep"),
+          branch))
 }
