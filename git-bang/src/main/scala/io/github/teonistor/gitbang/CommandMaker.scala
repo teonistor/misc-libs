@@ -2,7 +2,7 @@ package io.github.teonistor.gitbang
 
 import java.io.File
 
-class RepoDoer (directory: File) extends (RepoInvestigation => Seq[Seq[String]]){
+class CommandMaker(directory: File) extends (RepoInvestigation => Seq[Seq[String]]){
 
   def apply(investigation: RepoInvestigation): Seq[Seq[String]] = {
     LazyList.concat(

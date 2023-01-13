@@ -4,7 +4,7 @@ import io.github.teonistor.testing.SuperstrictMockitoTestBase
 
 import java.io.File
 
-class RepoDoerTest extends SuperstrictMockitoTestBase {
+class CommandMakerTest extends SuperstrictMockitoTestBase {
 
   mockitoTest("with checkedout branch", classOf[Runner])(runner => {
     val input = RepoInvestigation(
@@ -13,7 +13,7 @@ class RepoDoerTest extends SuperstrictMockitoTestBase {
       List("a", "b"),
       List.empty)
 
-    assert(new RepoDoer(new File("/home/me/place"))(input) == LazyList(
+    assert(new CommandMaker(new File("/home/me/place"))(input) == LazyList(
       List("cd", "/home/me/place"),
       List("git", "branch", "-D", "a"),
       List("git", "branch", "-D", "b"),
@@ -27,7 +27,7 @@ class RepoDoerTest extends SuperstrictMockitoTestBase {
       List("a", "b"),
       List("c", "d"))
 
-    assert(new RepoDoer(new File("/home/me/place"))(input) == LazyList(
+    assert(new CommandMaker(new File("/home/me/place"))(input) == LazyList(
       List("cd", "/home/me/place"),
       List("git", "checkout", "upstream/prod"),
       List("git", "branch", "-D", "a"),
