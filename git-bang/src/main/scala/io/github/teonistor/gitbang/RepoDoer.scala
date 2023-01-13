@@ -1,22 +1,21 @@
 package io.github.teonistor.gitbang
 
-import java.util.concurrent.Callable
+import java.io.File
 
-class RepoDoer (
-      runner: Runner,
-      investigation: RepoInvestigation) extends Callable[Boolean] {
+class RepoDoer (directory: File) extends (RepoInvestigation => Seq[Seq[String]]){
 
-  override def call(): Boolean = {
-    investigation.remoteProductionBranch
-      .filter(_=> investigation.checkedoutBranch.isEmpty)
-      .foreach(runner.run("git", "checkout", _))
+  def apply(investigation: RepoInvestigation): Seq[Seq[String]] = {
+    LazyList.concat(
+      Some(List("cd", directory.getAbsolutePath)),
 
-    investigation.toDelete.foreach(runner.run("git", "branch", "-D", _))
+      investigation.remoteProductionBranch
+        .filter(_=> investigation.checkedoutBranch.isEmpty)
+        .map(List("git", "checkout", _)),
 
-    investigation.remoteProductionBranch
-      .filter(_ => investigation.checkedoutBranch.isDefined)
-      .foreach(runner.run("git", "merge", _))
+      investigation.toDelete.map(List("git", "branch", "-D", _)),
 
-    true
+      investigation.remoteProductionBranch
+        .filter(_ => investigation.checkedoutBranch.isDefined)
+        .map(List("git", "merge", _)))
   }
 }

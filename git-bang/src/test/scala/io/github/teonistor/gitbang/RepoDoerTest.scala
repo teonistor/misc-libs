@@ -1,7 +1,8 @@
 package io.github.teonistor.gitbang
 
 import io.github.teonistor.testing.SuperstrictMockitoTestBase
-import org.mockito.BDDMockito.`given`
+
+import java.io.File
 
 class RepoDoerTest extends SuperstrictMockitoTestBase {
 
@@ -11,11 +12,12 @@ class RepoDoerTest extends SuperstrictMockitoTestBase {
       Some("feature/0123"),
       List("a", "b"),
       List.empty)
-    given(runner.run("git", "branch", "-D", "a")).willReturn("irrelevant")
-    given(runner.run("git", "branch", "-D", "b")).willReturn("irrelevant")
-    given(runner.run("git", "merge", "upstream/prod")).willReturn("irrelevant")
 
-    assert(new RepoDoer(runner, input).call())
+    assert(new RepoDoer(new File("/home/me/place"))(input) == LazyList(
+      List("cd", "/home/me/place"),
+      List("git", "branch", "-D", "a"),
+      List("git", "branch", "-D", "b"),
+      List("git", "merge", "upstream/prod")))
   })
 
   mockitoTest("without checkedout branch", classOf[Runner])(runner => {
@@ -24,10 +26,11 @@ class RepoDoerTest extends SuperstrictMockitoTestBase {
       None,
       List("a", "b"),
       List("c", "d"))
-    given(runner.run("git", "checkout", "upstream/prod")).willReturn("irrelevant")
-    given(runner.run("git", "branch", "-D", "a")).willReturn("irrelevant")
-    given(runner.run("git", "branch", "-D", "b")).willReturn("irrelevant")
 
-    assert(new RepoDoer(runner, input).call())
+    assert(new RepoDoer(new File("/home/me/place"))(input) == LazyList(
+      List("cd", "/home/me/place"),
+      List("git", "checkout", "upstream/prod"),
+      List("git", "branch", "-D", "a"),
+      List("git", "branch", "-D", "b")))
   })
 }
