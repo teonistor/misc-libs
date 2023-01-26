@@ -19,7 +19,7 @@ class RootHandler(
       .map(executor.submit(_))
       .map(_.get())
 
-    println(" ------- Git Situation Report -------")
+    println("------- Git Situation Report -------")
     (investigations zip directories).foreach(id => {
       println(id._2)
       println("Remote production branch: " + id._1.remoteProductionBranch.getOrElse("None"))
@@ -28,7 +28,7 @@ class RootHandler(
         println(id._1.toDelete.mkString("The following local branches will be deleted:\n  ", "\n  ", ""))
       if (id._1.toKeep.nonEmpty)
         println(id._1.toKeep.mkString("The following local branches will be kept:\n  ", "\n  ", ""))
-      println(" ------------------------------------")
+      println("------------------------------------")
     })
 
     val commands = (investigations zip directories)
@@ -42,11 +42,13 @@ class RootHandler(
             .mkString(" "))
       .mkString("\n"))
 
-//    Some(IOHelper.ask("Autorun all? (y/n)"))
-//      .filter(_.trim.toUpperCase == "Y")
-//      .foreach(_=> {
-//        println("Yes but no")
-//      })
+    Some(IOHelper.ask("Autorun all? (y/n)"))
+      .filter(_.trim.toUpperCase == "Y")
+      .foreach(_=>
+        (commands zip runners)
+          .filter(_._1.nonEmpty)
+          .foreach(cr =>
+            cr._1.foreach(c => cr._2.run(c:_*))))
 
     executor.shutdown()
   }
