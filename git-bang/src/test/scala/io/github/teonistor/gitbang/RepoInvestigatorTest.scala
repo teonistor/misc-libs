@@ -20,7 +20,7 @@ class RepoInvestigatorTest extends SuperstrictMockitoTestBase {
   mockitoTest("fetch not checked out", classOf[Runner])(runner => {
     given(runner.run("git", "remote")).willReturn("origin")
     given(runner.run("git", "branch", "-r")).willReturn("  origin/develop\n  origin/feature/1234\n  origin/master")
-    given(runner.run("git", "branch")).willReturn("  feature/1234\n  feature/5678")
+    given(runner.run("git", "branch")).willReturn("* (HEAD detached at b3a4df1)\n  feature/1234\n  feature/5678")
     given(runner.run("git", "fetch")).willReturn("irrelevant")
     given(runner.run("git", "diff", "--compact-summary", "origin/master...feature/1234")).willReturn(" 1 file changed, 1 insertion(+)")
     given(runner.run("git", "diff", "--compact-summary", "origin/master...feature/5678")).willReturn("")

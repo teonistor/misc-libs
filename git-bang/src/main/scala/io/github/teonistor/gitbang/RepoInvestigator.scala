@@ -27,6 +27,7 @@ class RepoInvestigator(
       .map(productionBranch => {
         val localBranchesByDeleteByCheckedOut = runner.run("git", "branch")
           .split("\n").to(List)
+          .filterNot(_.contains("HEAD detached"))
           .groupMap(_.startsWith("*"))(_.substring(1).strip()).to(List)
           .flatMap(keyify(productionBranch).tupled)
           .groupMap(_._1)(_._2)
