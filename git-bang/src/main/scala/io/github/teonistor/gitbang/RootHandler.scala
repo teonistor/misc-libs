@@ -35,9 +35,9 @@ class RootHandler(
       .map(id => new CommandMaker(id._2)(id._1))
 
     println("The following commands would improve the situation:")
-    println(commands
-      .filter(_.size > 1)
-      .flatten
+    println((commands zip directories)
+      .filter(_._1.nonEmpty)
+      .flatMap(cd => List("cd", cd._2.getAbsolutePath) +: cd._1)
       .map(_.map(arg => if (arg contains " ") "'" + arg + "'" else arg)
             .mkString(" "))
       .mkString("\n"))

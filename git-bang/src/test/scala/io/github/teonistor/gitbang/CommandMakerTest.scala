@@ -14,7 +14,6 @@ class CommandMakerTest extends SuperstrictMockitoTestBase {
       List.empty)
 
     assert(new CommandMaker(new File("/home/me/place"))(input) == LazyList(
-      List("cd", "/home/me/place"),
       List("git", "branch", "-D", "a"),
       List("git", "branch", "-D", "b"),
       List("git", "merge", "upstream/prod")))
@@ -28,7 +27,6 @@ class CommandMakerTest extends SuperstrictMockitoTestBase {
       List("c", "d"))
 
     assert(new CommandMaker(new File("/home/me/place"))(input) == LazyList(
-      List("cd", "/home/me/place"),
       List("git", "checkout", "upstream/prod"),
       List("git", "branch", "-D", "a"),
       List("git", "branch", "-D", "b")))

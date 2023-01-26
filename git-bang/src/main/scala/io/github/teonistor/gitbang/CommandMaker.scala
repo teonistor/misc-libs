@@ -6,8 +6,6 @@ class CommandMaker(directory: File) extends (RepoInvestigation => Seq[Seq[String
 
   def apply(investigation: RepoInvestigation): Seq[Seq[String]] = {
     LazyList.concat(
-      Some(List("cd", directory.getAbsolutePath)),
-
       investigation.remoteProductionBranch
         .filter(_=> investigation.checkedoutBranch.isEmpty)
         .map(List("git", "checkout", _)),
