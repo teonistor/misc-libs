@@ -15,6 +15,7 @@
     <description>Miscellaneous libraries falling out of toy projects</description>
 
     <modules>
+        <module>git-bang</module>
         <module>poor-mans-pipeline</module>
         <module>scalatest-utils</module>
         <module>stream-utils</module>
@@ -27,6 +28,7 @@
         <java.version>13</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <guava.version>31.1-jre</guava.version>
         <jackson.version>2.13.4</jackson.version>
