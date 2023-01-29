@@ -13,7 +13,7 @@ object Main {
         new DirectorySelector(),
         new Runner(_),
         new RepoInvestigator(_,_),
-        new CommandMaker,
+        new CommandMaker(),
         new SituationReportMaker(),
         ioHelper)
       .run(new File(root))

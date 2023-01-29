@@ -2,7 +2,7 @@ package io.github.teonistor.gitbang
 
 class CommandMaker extends (RepoInvestigation => Seq[Seq[String]]){
 
-  def apply(investigation: RepoInvestigation): Seq[Seq[String]] = {
+  def apply(investigation: RepoInvestigation): Seq[Seq[String]] =
     LazyList.concat(
       investigation.remoteProductionBranch
         .filter(_=> investigation.checkedoutBranch.isEmpty)
@@ -13,5 +13,4 @@ class CommandMaker extends (RepoInvestigation => Seq[Seq[String]]){
       investigation.remoteProductionBranch
         .filter(_ => investigation.checkedoutBranch.isDefined)
         .map(List("git", "merge", _)))
-  }
 }
