@@ -19,12 +19,9 @@ class RootHandler(
       .map(investigatorFactory(_, false))
       .map(executor.submit(_))
       .map(_.get())
+    val commands = investigations.map(commandMaker)
 
     println(situationReportMaker.makeMultiple(investigations, directories))
-
-    val commands = (investigations zip directories)
-      .map(id => commandMaker(id._1))
-
     println("The following commands would improve the situation:")
     println((commands zip directories)
       .filter(_._1.nonEmpty)
