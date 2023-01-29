@@ -5,13 +5,17 @@ import java.io.File
 object Main {
   def main(arg: Array[String]): Unit = {
 
+    val ioHelper = new IOHelper()
     val root = arg.headOption
-      .getOrElse(IOHelper.ask("Root directory not provided as argument. Please enter now:"))
+      .getOrElse(ioHelper.ask("Root directory not provided as argument. Please enter now:"))
 
     new RootHandler(
-        new File(root),
+        new DirectorySelector(),
         new Runner(_),
-        new RepoInvestigator(_,_))
-      .run()
+        new RepoInvestigator(_,_),
+        new CommandMaker,
+        new SituationReportMaker(),
+        ioHelper)
+      .run(new File(root))
   }
 }

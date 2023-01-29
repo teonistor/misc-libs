@@ -2,30 +2,28 @@ package io.github.teonistor.gitbang
 
 import java.io.File
 import java.util.concurrent.Executors.newCachedThreadPool
-import scala.annotation.tailrec
-import scala.collection.immutable.Queue
 
 class RootHandler(
-      root: File,
+      directorySelector: DirectorySelector,
       runnerFactory: File => Runner,
       investigatorFactory: (Runner,Boolean) => RepoInvestigator,
-      situationReportMakerFactory: () => SituationReportMaker
-      ) {
-  def run(): Unit = {
+      commandMaker: CommandMaker,
+      situationReportMaker: SituationReportMaker,
+      ioHelper: IOHelper) {
+  def run(root: File): Unit = {
     val executor = newCachedThreadPool()
 
-    val directories = identifyDirs(Queue(root))
+    val directories = directorySelector.select(root)
     val runners = directories.map(runnerFactory)
     val investigations = runners
       .map(investigatorFactory(_, false))
       .map(executor.submit(_))
       .map(_.get())
 
-    val situationReportMaker = situationReportMakerFactory()
     println(situationReportMaker.makeMultiple(investigations, directories))
 
     val commands = (investigations zip directories)
-      .map(id => new CommandMaker()(id._1))
+      .map(id => commandMaker(id._1))
 
     println("The following commands would improve the situation:")
     println((commands zip directories)
@@ -35,7 +33,7 @@ class RootHandler(
             .mkString(" "))
       .mkString("\n"))
 
-    Some(IOHelper.ask("Autorun all? (y/n)"))
+    Some(ioHelper.ask("Autorun all? (y/n)"))
       .filter(_.trim.toUpperCase == "Y")
       .foreach(_=>
         (commands zip runners)
@@ -45,19 +43,4 @@ class RootHandler(
 
     executor.shutdown()
   }
-
-  @tailrec
-  private def identifyDirs(q: Queue[File], r: List[File] = List.empty): List[File] =
-    if (q.isEmpty)
-      r.reverse
-
-    else {
-      val current = q.head
-      val subdirs = current.listFiles(_.isDirectory)
-
-      if (subdirs.exists(_.getName == ".git"))
-        identifyDirs(q.tail, current +: r)
-      else
-        identifyDirs(q.tail ++ subdirs, r)
-    }
 }
