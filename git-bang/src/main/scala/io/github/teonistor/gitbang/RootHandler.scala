@@ -8,7 +8,9 @@ import scala.collection.immutable.Queue
 class RootHandler(
       root: File,
       runnerFactory: File => Runner,
-      investigatorFactory: (Runner,Boolean) => RepoInvestigator) {
+      investigatorFactory: (Runner,Boolean) => RepoInvestigator,
+      situationReportMakerFactory: () => SituationReportMaker
+      ) {
   def run(): Unit = {
     val executor = newCachedThreadPool()
 
@@ -19,17 +21,8 @@ class RootHandler(
       .map(executor.submit(_))
       .map(_.get())
 
-    println("------- Git Situation Report -------")
-    (investigations zip directories).foreach(id => {
-      println(id._2)
-      println("Remote production branch: " + id._1.remoteProductionBranch.getOrElse("None"))
-      println(id._1.checkedoutBranch.map("Checked out on " +_).getOrElse("Not checked out"))
-      if (id._1.toDelete.nonEmpty)
-        println(id._1.toDelete.mkString("The following local branches will be deleted:\n  ", "\n  ", ""))
-      if (id._1.toKeep.nonEmpty)
-        println(id._1.toKeep.mkString("The following local branches will be kept:\n  ", "\n  ", ""))
-      println("------------------------------------")
-    })
+    val situationReportMaker = situationReportMakerFactory()
+    println(situationReportMaker.makeMultiple(investigations, directories))
 
     val commands = (investigations zip directories)
       .map(id => new CommandMaker()(id._1))
