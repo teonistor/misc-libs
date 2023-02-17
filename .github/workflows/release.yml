@@ -5,7 +5,7 @@ on:
       - prod
 permissions:
   contents: write
-  deployments: write
+  packages: write
 jobs:
   publish:
     runs-on: ubuntu-latest
