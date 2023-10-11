@@ -34,7 +34,7 @@ class RepoInvestigator(
 
         RepoInvestigation(
           Some(productionBranch),
-          localBranchesByDeleteByCheckedOut.getOrElse("checkedout", List.empty).headOption,
+          localBranchesByDeleteByCheckedOut.get("checkedout").flatMap(_.headOption),
           localBranchesByDeleteByCheckedOut.getOrElse("toDelete", List.empty),
           localBranchesByDeleteByCheckedOut.getOrElse("toKeep", List.empty))
       })
@@ -45,9 +45,9 @@ class RepoInvestigator(
     (checkedout: Boolean, branches: List[String]) =>
       branches.map(branch =>
 
-        ((if (runner.run("git", "diff", "--compact-summary", productionBranch + "..." + branch)
+        (if (runner.run("git", "diff", "--compact-summary", productionBranch + "..." + branch)
           .strip().isEmpty) "toDelete"
         else if (checkedout) "checkedout"
-        else "toKeep"),
+        else "toKeep",
           branch))
 }
