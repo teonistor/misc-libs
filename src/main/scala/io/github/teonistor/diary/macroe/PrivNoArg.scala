@@ -3,6 +3,7 @@ package io.github.teonistor.diary.macroe
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
+import scala.reflect.runtime.universe.reify
 
 @compileTimeOnly("enable macro paradise to expand macro annotations")
 class PrivNoArg extends StaticAnnotation {
@@ -11,7 +12,7 @@ class PrivNoArg extends StaticAnnotation {
 
 object PrivNoArg {
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*) = {
-    import c.universe.{ClassDef, Quasiquote, Template, Tree}
+    import c.universe.{ClassDef, Quasiquote, Template, Tree, ValDef}
 
     val inputs = annottees.map(_.tree).toList
     val stuff: List[c.universe.Tree] = inputs match {
@@ -24,9 +25,28 @@ object PrivNoArg {
         val body = classDef.impl.body
 
         val nulls = classDef match {
-          case q"..$_ class $_(...$params) extends ..$parents { ..$body }" => params.toList.asInstanceOf[List[List[Tree]]]
-          .map(_.map(_ => q"null"))
+          case q"..$_ class $_(...$params) extends ..$_ { ..$_ }" =>
+//            val ValDef(_,_,t,_) :: Nil = params(1)
+//            println(t + "  " + t.getClass)
+//            println(params(1).asInstanceOf[List[_]](0).getClass)
+            params.toList.asInstanceOf[List[List[Tree]]]
+          .map(_.map {
+            case ValDef(_, _, typ, _) => typ.toString()
+          }.map {
+            case "Boolean" => q"false"
+            case "Char" => reify('0') q"'\u0000'"
+            case "Byte" => q"0"
+            case "Short" => q"0"
+            case "Int" => q"0"
+            case "Long" => q"0L"
+            case "Float" => q"0f"
+            case "Double" => q"0.0"
+            case "String" => q""""""""
+             case _ => q"null"
+          })
         }
+
+        // List(<caseaccessor> <paramaccessor> val comments: Int = _)
 
         val output = ClassDef(classDef.mods, classDef.name, classDef.tparams, Template(classDef.impl.parents, classDef.impl.self, body.appended(
           q"private def this() = this(...$nulls)"
