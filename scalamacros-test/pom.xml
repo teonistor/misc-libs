@@ -4,17 +4,22 @@
 
     <parent>
         <groupId>io.github.teonistor</groupId>
-        <artifactId>usual-libs-scala</artifactId>
+        <artifactId>usual-libs-scalatest</artifactId>
         <version>1.0.3-SNAPSHOT</version>
-        <relativePath>../usual-libs-scala</relativePath>
+        <relativePath>../usual-libs-scalatest</relativePath>
     </parent>
 
-    <artifactId>scalamacros</artifactId>
+    <artifactId>scalamacros-test</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-reflect</artifactId>
+            <groupId>io.github.teonistor</groupId>
+            <artifactId>scalamacros</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.13</artifactId>
         </dependency>
     </dependencies>
 
@@ -34,7 +39,7 @@
                     <executions>
                         <execution>
                             <goals>
-                                <goal>compile</goal>
+                                <goal>testCompile</goal>
                             </goals>
                         </execution>
                     </executions>
