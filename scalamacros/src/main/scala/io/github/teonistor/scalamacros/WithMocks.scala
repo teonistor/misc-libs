@@ -3,55 +3,49 @@ package io.github.teonistor.scalamacros
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
-/**
- * Input usage:
- *
- * withMocks("do something", (a: Apple, b: Banana) => {
- *   someAssertions(a)
- *   moreAssertions(b)
- * })
- *
- * would result in:
- *
- * test("do something") {
- *   val a = mock[Apple]
- *   val b = mock[Banana]
- *
- *   someAssertions(a)
- *   moreAssertions(b)
- * }
- */
-
 object WithMocks {
-  def withMocks(name: String, func: Any): Unit = macro WithMocks.impl
+  /**
+   * Input usage:
+   *
+   * withMocks("do something", (a: Apple, b: Banana) => {
+   *   someAssertions(a)
+   *   moreAssertions(b)
+   * })
+   *
+   * is equivalent to:
+   *
+   * test("do something") {
+   *   val a = mock[Apple]
+   *   val b = mock[Banana]
+   *
+   *   someAssertions(a)
+   *   moreAssertions(b)
+   * }
+   */
+  def mocksTest(name: String, func: Any): Unit = macro WithMocks.impl
 
   def impl(c: whitebox.Context)(name: c.Expr[String], func: c.Expr[Any]) = {
     import c.universe.{Quasiquote, ValDef}
-    val input = s"$name, $func"
+    val nameT = name.tree
+    val funcT = func.tree
 
-    val params = func.tree match {
-      case q"(..$params) => {..$body}" => params.toList.map {
-        case ValDef(_,name,typ,_) => (name, typ)
+    val params = funcT match {
+      case q"(..$params) => {..$_}" => params.toList.map {
+        case ValDef(_,_,typ,_) => typ
 
-        case _ => abort(c, s"could not handle parameters of $input")
+        case _=> abort(c, s"could not handle parameters of $funcT")
       }
-      case _ => abort(c, s"expected a function as second argument but got $input")
+      case _=> abort(c, s"expected a function as second argument but got $funcT")
     }
 
-    val mockDecls = params.map {
-      case (name,typ) =>
-        println(s"DEBUG::  $name  $typ")
-//        q"val $name:$typ = mock[$typ];"
-        q"mock[$typ]"
-//        ValDef.apply(Modifiers(), name, typ, q"mock[$typ]")
-    }
+    val mockDecls = params.map(typ => q"mock[$typ]")
     val output = q"""
-      test(${name.tree}) {
-        val func = ${func.tree}
+      test($nameT) {
+        val func = $funcT
         func(..$mockDecls)
       }"""
 
-    println(s"[DEBUG] WithMocks: Turned ${name.tree}, $input into $output")
+    println(s"[DEBUG] WithMocks: Turned $nameT, $funcT into $output")
     output
   }
 

@@ -4,11 +4,14 @@ import org.scalatest.funsuite.AnyFunSuiteLike
 
 class WithMocksTest extends AnyFunSuiteLike {
 
-  WithMocks.withMocks("foo", (x:TestType) => {
-    assert(x.aMethod == "orange")
-//    val y=x.aMethod
-//    println(y)
-  })
+  test("incorrect use") {
+    assertTypeError("""
+      WithMocks.mocksTest("potato", "not a function")
+    """)
+  }
+
+  WithMocks.mocksTest("correct use", (x:TestType) =>
+    assert(x.aMethod == "orange"))
 
   private def mock[T] = new TestType {
     override def aMethod: String = "orange"
