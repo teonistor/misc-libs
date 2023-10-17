@@ -17,8 +17,8 @@ class PrivNoArgTest extends org.scalatest.funsuite.AnyFunSuiteLike {
   class TestClass(aString: String,
                   anInt: Int,
                   aShort: Short,
-                  aDouble: Double,
-                  aFloat: Float,
+                  aDouble: Double)(
+                  aFloat: Float)(
                   aChar: Char,
                   aBoolean: Boolean,
                   aByte: Byte,
