@@ -16,6 +16,8 @@
 
     <modules>
         <module>poor-mans-pipeline</module>
+        <module>scalamacros</module>
+        <module>scalamacros-test</module>
         <module>scalatest-utils</module>
         <module>stream-utils</module>
         <module>usual-libs-testing</module>
@@ -43,6 +45,11 @@
     <dependencyManagement>
         <dependencies>
 
+            <dependency>
+                <groupId>io.github.teonistor</groupId>
+                <artifactId>scalamacros</artifactId>
+                <version>1.0.3-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>io.github.teonistor</groupId>
                 <artifactId>scalatest-utils</artifactId>
@@ -102,6 +109,11 @@
             <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-reflect</artifactId>
                 <version>${scala.version}</version>
             </dependency>
             <dependency>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.teonistor</groupId>
+        <artifactId>usual-libs-scalatest</artifactId>
+        <version>1.0.3-SNAPSHOT</version>
+        <relativePath>../usual-libs-scalatest</relativePath>
+    </parent>
+
+    <artifactId>scalamacros-test</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.teonistor</groupId>
+            <artifactId>scalamacros</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.13</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>net.alchim31.maven</groupId>
+                    <artifactId>scala-maven-plugin</artifactId>
+                    <version>4.4.0</version>
+                    <configuration>
+                        <args>
+                            <arg>-Ymacro-annotations</arg>
+                        </args>
+                        <recompileMode>incremental</recompileMode>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>testCompile</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
