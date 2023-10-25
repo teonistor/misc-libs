@@ -31,16 +31,17 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
+        <flexmark.version>0.64.8</flexmark.version>
         <guava.version>32.1.3-jre</guava.version>
         <jackson.version>2.13.4</jackson.version>
+        <jjwt.version>0.12.3</jjwt.version>
         <jfreesvg.version>3.4.3</jfreesvg.version>
+        <mockito-scala.version>1.17.27</mockito-scala.version>
         <!-- CAUTION: Do not 2.13.10! But above that may be fine, haven't tried -->
         <scala.version>2.13.9</scala.version>
-        <vavr.version>0.10.4</vavr.version>
-        <flexmark.version>0.64.8</flexmark.version>
-        <mockito-scala.version>1.17.27</mockito-scala.version>
         <scalatest.version>3.2.17</scalatest.version>
-        <jjwt.version>0.12.3</jjwt.version>
+        <vavr.version>0.10.4</vavr.version>
+        <vavr-jackson.version>0.10.3</vavr-jackson.version>
     </properties>
 
     <dependencyManagement>
@@ -122,6 +123,11 @@
                 <artifactId>vavr</artifactId>
                 <version>${vavr.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.vavr</groupId>
+                <artifactId>vavr-jackson</artifactId>
+                <version>${vavr-jackson.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.mockito</groupId>
@@ -138,51 +144,6 @@
 
     <build>
         <finalName>${project.artifactId}</finalName>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
-                    <configuration>
-                        <excludes>
-                            <!-- Let the Scala plugin do everything -->
-                            <exclude>**</exclude>
-                        </excludes>
-                    </configuration>
-                </plugin>
-
-                <plugin>
-                    <groupId>net.alchim31.maven</groupId>
-                    <artifactId>scala-maven-plugin</artifactId>
-                    <version>4.4.0</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>compile</goal>
-                                <goal>testCompile</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.scalatest</groupId>
-                    <artifactId>scalatest-maven-plugin</artifactId>
-                    <version>2.0.2</version>
-                    <configuration>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>test</id>
-                            <goals>
-                                <goal>test</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
 
     <scm>
