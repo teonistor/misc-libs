@@ -11,7 +11,7 @@
 
     <groupId>io.github.teonistor</groupId>
     <artifactId>usual-suspects</artifactId>
-    <version>1.0.4-SNAPSHOT</version>
+    <version>1.0.4</version>
     <description>Miscellaneous libraries falling out of toy projects</description>
 
     <modules>
@@ -49,17 +49,17 @@
             <dependency>
                 <groupId>io.github.teonistor</groupId>
                 <artifactId>scalamacros</artifactId>
-                <version>1.0.4-SNAPSHOT</version>
+                <version>1.0.4</version>
             </dependency>
             <dependency>
                 <groupId>io.github.teonistor</groupId>
                 <artifactId>scalatest-utils</artifactId>
-                <version>1.0.4-SNAPSHOT</version>
+                <version>1.0.4</version>
             </dependency>
             <dependency>
                 <groupId>io.github.teonistor</groupId>
                 <artifactId>stream-utils</artifactId>
-                <version>1.0.4-SNAPSHOT</version>
+                <version>1.0.4</version>
             </dependency>
 
             <dependency>
@@ -187,7 +187,7 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/teonistor/misc-libs.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>usual-suspects-1.0.4</tag>
     </scm>
 
     <distributionManagement>
