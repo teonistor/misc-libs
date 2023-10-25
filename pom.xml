@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.10</version>
+        <version>2.7.17</version>
     </parent>
     <packaging>pom</packaging>
 
@@ -26,20 +26,21 @@
     </modules>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>13</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <guava.version>31.1-jre</guava.version>
+        <guava.version>32.1.3-jre</guava.version>
         <jackson.version>2.13.4</jackson.version>
         <jfreesvg.version>3.4.3</jfreesvg.version>
-        <!-- CAUTION: Do not 2.13.10! -->
+        <!-- CAUTION: Do not 2.13.10! But above that may be fine, haven't tried -->
         <scala.version>2.13.9</scala.version>
         <vavr.version>0.10.4</vavr.version>
-        <flexmark.version>0.64.0</flexmark.version>
-        <mockito-scala.version>1.17.14</mockito-scala.version>
-        <scalatest.version>3.2.15</scalatest.version>
-        <jjwt.version>0.9.1</jjwt.version>
+        <flexmark.version>0.64.8</flexmark.version>
+        <mockito-scala.version>1.17.27</mockito-scala.version>
+        <scalatest.version>3.2.17</scalatest.version>
+        <jjwt.version>0.12.3</jjwt.version>
     </properties>
 
     <dependencyManagement>
