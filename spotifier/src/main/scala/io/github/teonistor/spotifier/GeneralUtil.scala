@@ -5,10 +5,18 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.io.File
 import java.nio.file.Files.{readString, writeString}
 import java.nio.file.Path
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors.newFixedThreadPool
 import scala.util.Try
 
 
 object GeneralUtil {
+
+  private val executor = newFixedThreadPool(8, (r: Runnable) => {
+    val thread = new Thread(r)
+    thread.setDaemon(true)
+    thread
+  })
 
   private[spotifier] def cachingObj[T](serialiser: T => String, deserialiser: String => T)(cacheFile: String)(func: => T) =
     deserialiser(cachingString(cacheFile)(serialiser(func)))
@@ -26,6 +34,19 @@ object GeneralUtil {
 
         data
       }.get
+
+  private[spotifier] implicit class VectorParallelMap[T](private val self:Vector[T]) extends AnyVal {
+
+    def parallelMap[R](func:T=>R) = self
+      .map[Callable[R]](t => () => func(t))
+      .map(executor.submit(_))
+      .map(_.get())
+
+    def parallelFlatMap[R](func:T=>IterableOnce[R]) = self
+      .map[Callable[IterableOnce[R]]](t => () => func(t))
+      .map(executor.submit(_))
+      .flatMap(_.get())
+  }
 
   private[spotifier] def ns[T](func: => T) =
     try

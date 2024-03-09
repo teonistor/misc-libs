@@ -3,9 +3,10 @@ package io.github.teonistor.spotifier
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import io.github.teonistor.spotifier.GeneralUtil.{ns, withWebClientExceptionLogging}
-import io.github.teonistor.spotifier.data.NicePlaylist
+import io.github.teonistor.spotifier.data.{FrontendData, NicePlaylist}
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
+import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import org.springframework.web.util.UriComponentsBuilder
 
 import java.net.URLEncoder.encode
@@ -52,10 +53,6 @@ object SpotifyDataUtil {
       .get("me")
       .get("libraryV3")
 
-    //    "aab" match {
-    //      case ("a" + u) => println(u)
-    //    }
-
     val result = playlists
       .get("items").asScala
       .map(_.get("item").get("data"))
@@ -74,12 +71,25 @@ object SpotifyDataUtil {
     result.flatten
   }
 
-  def pullPlaylistContent(web:WebClient, objectMapper:ObjectMapper, uriBuilder:UriComponentsBuilder, playlistId: String): JsonNode = withWebClientExceptionLogging {
+  def pullPlaylistAndMakeNice(web:WebClient, objectMapper:ObjectMapper, uriBuilder:UriComponentsBuilder, playlistId: String): NicePlaylist ={
+    val limit = 200
+    Iterator.iterate(0)(_+limit)
+      .map(pullPlaylistContent(web, objectMapper, uriBuilder, playlistId, limit, _))
+      .map(playlistStructureToNice)
+//      .takeWhile {case (playlist, reportedSize) =>
+//        playlist.tracks.size >= limit
+//      }
+      .takeWhile(playlist => playlist != null && playlist.tracks.nonEmpty)
+      .reduce[NicePlaylist] { case (l, r) =>
+        NicePlaylist(l.name, l.owner, l.tracks ++ r.tracks)
+      }
+  }
+
+  private def pullPlaylistContent(web: WebClient, objectMapper: ObjectMapper, uriBuilder: UriComponentsBuilder, playlistId: String, limit: Int, offset: Int): JsonNode = withWebClientExceptionLogging {
     val variables = objectMapper.getNodeFactory.objectNode()
       .put("uri", "spotify:playlist:" + playlistId)
-      // TODO Ask for the correct number, or even better, ask for small numbers and recompose (UGH! Paging!)
-      .put("limit", 300)  // Sometimes 500
-      .put("offset", 0)
+      .put("limit", limit)
+      .put("offset", offset)
     val extensions = objectMapper.getNodeFactory.objectNode()
       .set[JsonNode]("persistedQuery", objectMapper.getNodeFactory.objectNode()
         .put("version", 1)
@@ -92,15 +102,18 @@ object SpotifyDataUtil {
       .build(true)
       .toUri
 
-    web.get()
-      .uri(uri).asInstanceOf[RequestHeadersSpec[_]]
-      .retrieve()
-      .bodyToMono(classOf[JsonNode])
-      .block()
+    try
+      web.get()
+        .uri(uri).asInstanceOf[RequestHeadersSpec[_]]
+        .retrieve()
+        .bodyToMono(classOf[JsonNode])
+        .block()
+    catch {
+      case e: NotFound => null  // Hack!
+    }
   }
 
-  // TODO Verify the received number matches the expected number before caching garbage
-  def playlistStructureToNice(playlistStructure:JsonNode): NicePlaylist = ns {
+  private def playlistStructureToNice(playlistStructure:JsonNode) = ns {
     val playlist = playlistStructure
       .get("data")
       .get("playlistV2")
@@ -127,13 +140,49 @@ object SpotifyDataUtil {
               .get("name").textValue()))):_*)
       }
 
-    val actualSize = result.tracks.size
-    val reportedSize = playlist.get("content").get("totalCount").intValue()
-    if (actualSize != reportedSize)
-      throw new IllegalStateException(s"Number of tracks [$actualSize] in the structure of [${playlist.get("name")}] differs from reported playlist size [$reportedSize]. " +
-        "If it is very large, some unspoken limit on the Spotify API may have been reached (or there's a bug)")
+//    val actualSize = result.tracks.size
+//    val reportedSize = playlist.get("content").get("totalCount").intValue()
+//    if (actualSize != reportedSize)
+//      throw new IllegalStateException(s"Number of tracks [$actualSize] in the structure of [${playlist.get("name")}] differs from reported playlist size [$reportedSize]. " +
+//        "If it is very large, some unspoken limit on the Spotify API may have been reached (or there's a bug)")
 
     result
   }
 
+  def comparisonise(playlists: Vector[NicePlaylist]): FrontendData = {
+    val trackMaps = playlists
+      .map(_.tracks.zipWithIndex.toMap)
+
+    val immediateConnectors = (1 until playlists.size).flatMap { endCol =>
+      val startCol = endCol - 1
+      val leftTracks = trackMaps(startCol)
+      val rightTracks = trackMaps(endCol)
+
+      (leftTracks.keySet & rightTracks.keySet).map(commonTrack =>
+        FrontendData.TransmissibleConnector(startCol, endCol, leftTracks(commonTrack), rightTracks(commonTrack)))
+    }
+
+   // TODO Connections skipping columns
+   //      The difficulty is not showing connections which can be reached by stringing together shorter ones
+//    val skippingConns = (2 until topPlaylists.size).flatMap(j =>
+//      (0 to j-2).map { i =>
+//        val overlap = topPlaylists(i).tracks.toSet & topPlaylists(j).tracks.toSet
+//        (i, j, overlap.size)
+//      })
+//    analysis
+//      .sortBy(u => u._2 - u._1)
+//      .foreach(println)
+
+    val playlistsOut = playlists.map(nicePlaylist => FrontendData.TransmissiblePlaylist(
+      nicePlaylist.name,
+      nicePlaylist.tracks.map(track => FrontendData.TransmissibleTrack(
+        track.name,
+        Vector(track.album, track.artists.mkString(", "))))))
+
+    FrontendData(
+      "FIXME Name not transmitted",
+      playlistsOut,
+      immediateConnectors.to(Vector),
+      Vector.empty)
+  }
 }
