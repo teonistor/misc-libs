@@ -1,5 +1,6 @@
 package io.github.teonistor.spotifier
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.json.JsonMapper
@@ -9,16 +10,20 @@ import io.github.teonistor.spotifier.data.NicePlaylist
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.util.UriComponentsBuilder
 
-import java.nio.file.Files.readString
+import java.nio.file.Files.{readString, walk, writeString}
 import java.nio.file.Path.{of => path}
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 object Coordinator {
 
   private val credLocation = path("spotify-creds")
   private val cacheLocation = path("spotify-cache")
   private val outputLocation = path("spotify-out")
+
+  private val archiveOutputLocation = outputLocation.resolve("archive")
+  private val frontendOutputLocation = outputLocation.resolve("frontend")
 
 //  private val executor = newFixedThreadPool(8, (r: Runnable) => {
 //    val t = new Thread(r)
@@ -53,25 +58,91 @@ object Coordinator {
   def execute(playlistName: Option[String] = None): Unit = {
     val today = LocalDate.now().format(ISO_LOCAL_DATE)
 
-    val v= Iterator(pullPlaylistCoordinates(web, objectMapper, uriBuilder()))
-      .flatMap(playlistCoordinatesToNice)
+    cachingObj(objectMapper.writeValueAsString(_), objectMapper.readValue(_, new TypeReference[Vector[(String,String)]]{}))(
+      cacheLocation.resolve("coordinates").resolve(today + ".json").toString) {
+      playlistCoordinatesToNice(pullPlaylistCoordinates(web, objectMapper, uriBuilder())).toVector
+    }
+
+//    val v = Iterator(cachingJson(cacheLocation.resolve("coordinates").resolve(today + ".json").toString)(
+//        pullPlaylistCoordinates(web, objectMapper, uriBuilder())))
+//      .flatMap(playlistCoordinatesToNice)
       .filter(playlistName
         .map(name => (nameAndId:(String,String)) => name == nameAndId._1)
         .getOrElse(_=> true))
-      .toVector
+//      .toVector
       .parallelMap { case (name, id) =>
-        // TODO Ensure file names don't conflict from different playlists by sheer misfortune
-        val fileName = name.replaceAll("[^a-zA-Z0-9,_-]+", "_")
-
-        val nice = objectMapper.readValue(
-          cachingString(cacheLocation.resolve(today).resolve(fileName).toString) {
+//        cachingObj()
+//
+        objectMapper.readValue(
+          cachingString(archiveOutputLocation
+            .resolve(cleanName(name))
+            .resolve(id)
+            .resolve(today + ".json")
+            .toString) {
             objectMapper
               .valueToTree[JsonNode](pullPlaylistAndMakeNice(web, objectMapper, uriBuilder(), id))
               .toPrettyString
           },
           classOf[NicePlaylist])
-
-        nice
       }
+
+    writeString(
+      frontendOutputLocation.resolve(today).resolve("Board_Games.json"),
+      objectMapper.writeValueAsString(historiciseByLatestName("Board_Games")))
   }
+
+  def historiciseByLatestName(playlistName: String) = {
+    val finder = ".+/([^/]+)/([^/]+)/([^/]+).json".r
+    val files = walk(outputLocation)
+      .iterator().asScala
+      .map(_.toString)
+      .flatMap(path => path match {
+        case finder(name, id, date) => Some((name, date, id, path))
+        case _ => None
+      })
+      .to(LazyList)
+
+    val targetId = files
+      .filter(_._1 == playlistName)
+      .maxBy(_._2)
+      ._3
+
+    val plsts = files
+      .filter(_._3 == targetId)
+      .sortBy(_._2)
+      .map(_._4)
+      .map(path(_))
+      .map(readString)
+      .map(objectMapper.readValue(_, classOf[NicePlaylist]))
+      .toVector
+
+    comparisonise(plsts)
+  }
+
+  private def cleanName(playlistName:String) =
+    playlistName.replaceAll("[^a-zA-Z0-9,_-]+", "_")
+
+  /*def fixYesterday()={
+    val finderToday = ".+/([^/]+)/([^/]+)/([^/]+).json".r
+    val finderYesterday = ".+/2024-03-09/([^/]+)".r
+
+    val todays = walk(cacheLocation)
+      .iterator().asScala
+      .map(_.toString)
+      .filter(!_.contains("2024-03-09"))
+      .flatMap(path => path match {
+        case finderToday(name, id, date) => Some((name, date, id, path))
+        case _ => None
+      })
+
+    val yesterdays = walk(cacheLocation)
+      .iterator().asScala
+      .map(_.toString)
+      .flatMap(path => path match {
+        case finderYesterday(name) => Some((name, path))
+        case _ => None
+      })
+
+      // Meh it's not worth it
+  }*/
 }

@@ -75,7 +75,7 @@ object SpotifyDataUtil {
     val limit = 200
     Iterator.iterate(0)(_+limit)
       .map(pullPlaylistContent(web, objectMapper, uriBuilder, playlistId, limit, _))
-      .map(playlistStructureToNice)
+      .map(playlistStructureToNice(objectMapper, _))
 //      .takeWhile {case (playlist, reportedSize) =>
 //        playlist.tracks.size >= limit
 //      }
@@ -113,7 +113,7 @@ object SpotifyDataUtil {
     }
   }
 
-  private def playlistStructureToNice(playlistStructure:JsonNode) = ns {
+  private def playlistStructureToNice(objectMapper:ObjectMapper, playlistStructure:JsonNode) = ns {
     val playlist = playlistStructure
       .get("data")
       .get("playlistV2")
@@ -125,19 +125,32 @@ object SpotifyDataUtil {
         ns(playlist.get("name").textValue()),
         ns(playlist.get("ownerV2").get("data").get("uri").textValue())
       )) { case (nicePlaylist, trackStructure) =>
+
+        val affinity = ns(trackStructure
+          .get("attributes").asScala
+          .find(_.get("key").textValue() == "multiUserAttributionMetadata")
+          .map(_.get("value").textValue())
+          .map(objectMapper.readTree(_))
+          .orNull
+          .get("attributed_users").asScala
+          .map(_.get("display_name").textValue())
+          .toVector)
         val track = trackStructure
           .get("itemV2")
           .get("data")
+
         nicePlaylist.addTrack(
           ns(track.get("name").textValue()),
           ns(track.get("albumOfTrack")
             .get("name").textValue()),
           Option(ns(track.get("artists")
             .get("items").asScala
-            .to(Vector))).getOrElse(Vector.empty)
+            .to(Vector)))
+            .getOrElse(Vector.empty)
             .flatMap(artist => Option(ns(artist
               .get("profile")
-              .get("name").textValue()))):_*)
+              .get("name").textValue()))),
+          Option(affinity).getOrElse(Vector.empty))
       }
 
 //    val actualSize = result.tracks.size
@@ -148,6 +161,31 @@ object SpotifyDataUtil {
 
     result
   }
+
+  /*private def pageAwareGet[T](getTree: (Int, Int) => Mono[JsonNode],
+//                              getActualSizeFromTree: JsonNode => Int,
+                              getReportedSizeFromTree: JsonNode => Int,
+                              mapper: java.util.function.Function[JsonNode, T],
+                              reducer: BiFunction[T,T,T]): Mono[T] = {
+    val limit = 200
+    getTree(limit, 0)
+      .flatMapMany[JsonNode] { first =>
+        val pagesRequired = (getReportedSizeFromTree(first) + limit - 1) / limit
+
+        if (pagesRequired < 2)
+          Mono.just(first)
+
+        else {
+          val function:java.util.function.Function[Int, Publisher[JsonNode]] = getTree(limit, _)
+          Flux.concat(Mono.just(first) /*.asInstanceOf[Publisher[JsonNode]]*/ ,
+            Flux.fromIterable((1 until pagesRequired)
+                .map(_ * limit).asJava)
+              .flatMap(function))
+        }
+      }
+      .map(mapper)
+      .reduce(reducer)
+  }*/
 
   def comparisonise(playlists: Vector[NicePlaylist]): FrontendData = {
     val trackMaps = playlists
