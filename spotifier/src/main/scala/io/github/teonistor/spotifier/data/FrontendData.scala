@@ -18,6 +18,9 @@ object FrontendData {
   case class TransmissibleTrack(name: String,
                                 additionalLines: Vector[String])
 
+  def TransmissibleTrack(name: String, additionalLines: String*): TransmissibleTrack =
+    TransmissibleTrack(name, additionalLines.toVector)
+
   case class TransmissibleConnector(startCol: Int,
                                     endCol: Int,
                                     startRow: Int,

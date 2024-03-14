@@ -110,13 +110,17 @@ object Coordinator {
     val plsts = files
       .filter(_._3 == targetId)
       .sortBy(_._2)
+      .map {
+        case (_, date, _, pathStr) => objectMapper
+          .readValue(readString(path(pathStr)), classOf[NicePlaylist])
+          .copy(name = date) }
       .map(_._4)
       .map(path(_))
       .map(readString)
       .map(objectMapper.readValue(_, classOf[NicePlaylist]))
       .toVector
 
-    comparisonise(plsts)
+    comparisonise(plsts, playlistName)
   }
 
   private def cleanName(playlistName:String) =

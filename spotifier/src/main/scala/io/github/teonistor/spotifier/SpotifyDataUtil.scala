@@ -187,9 +187,12 @@ object SpotifyDataUtil {
       .reduce(reducer)
   }*/
 
-  def comparisonise(playlists: Vector[NicePlaylist]): FrontendData = {
+  def comparisonise(playlists: Vector[NicePlaylist], title: String): FrontendData = {
     val trackMaps = playlists
-      .map(_.tracks.zipWithIndex.toMap)
+      .map(_.tracks.iterator
+        // A change in affinity should cause a track to appear as two
+        .map(_.copy(affinity = Vector.empty))
+        .zipWithIndex.toMap)
 
     val immediateConnectors = (1 until playlists.size).flatMap { endCol =>
       val startCol = endCol - 1
@@ -215,10 +218,12 @@ object SpotifyDataUtil {
       nicePlaylist.name,
       nicePlaylist.tracks.map(track => FrontendData.TransmissibleTrack(
         track.name,
-        Vector(track.album, track.artists.mkString(", "))))))
+        track.album,
+        track.artists.mkString(", "),
+        track.affinity.mkString(", ")))))
 
     FrontendData(
-      "FIXME Name not transmitted",
+      title,
       playlistsOut,
       immediateConnectors.to(Vector),
       Vector.empty)
