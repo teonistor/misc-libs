@@ -1,5 +1,6 @@
 package io.github.teonistor.spotifier
 
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import org.springframework.web.reactive.function.client.WebClientResponseException
 
 import java.io.File
@@ -7,6 +8,7 @@ import java.nio.file.Files.{readString, writeString}
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors.newFixedThreadPool
+import scala.reflect.ClassTag
 import scala.util.Try
 
 
@@ -17,6 +19,9 @@ object GeneralUtil {
     thread.setDaemon(true)
     thread
   })
+
+  private[spotifier] def cachingJson[T](objectMapper: ObjectMapper, cacheFile: String)(func: => T)(implicit cls: ClassTag[T]) =
+    cachingObj(objectMapper.valueToTree[JsonNode](_:T).toPrettyString, objectMapper.readValue(_, cls.runtimeClass.asInstanceOf[Class[T]]))(cacheFile)(func)
 
   private[spotifier] def cachingObj[T](serialiser: T => String, deserialiser: String => T)(cacheFile: String)(func: => T) =
     deserialiser(cachingString(cacheFile)(serialiser(func)))
