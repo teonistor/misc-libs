@@ -1,5 +1,6 @@
 package io.github.teonistor.spotifier
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import org.springframework.web.reactive.function.client.WebClientResponseException
 
@@ -19,6 +20,9 @@ object GeneralUtil {
     thread.setDaemon(true)
     thread
   })
+
+  private[spotifier] def cachingJson[T](objectMapper: ObjectMapper, cacheFile: String, typeReference:TypeReference[T])(func: => T) =
+    cachingObj(objectMapper.valueToTree[JsonNode](_:T).toPrettyString, objectMapper.readValue(_, typeReference))(cacheFile)(func)
 
   private[spotifier] def cachingJson[T](objectMapper: ObjectMapper, cacheFile: String)(func: => T)(implicit cls: ClassTag[T]) =
     cachingObj(objectMapper.valueToTree[JsonNode](_:T).toPrettyString, objectMapper.readValue(_, cls.runtimeClass.asInstanceOf[Class[T]]))(cacheFile)(func)

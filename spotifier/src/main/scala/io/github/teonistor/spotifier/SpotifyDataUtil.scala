@@ -109,7 +109,7 @@ object SpotifyDataUtil {
         .bodyToMono(classOf[JsonNode])
         .block()
     catch {
-      case e: NotFound => null  // Hack!
+      case _: NotFound => null  // Hack!
     }
   }
 
@@ -204,7 +204,8 @@ object SpotifyDataUtil {
     }
 
    // TODO Connections skipping columns
-   //      The difficulty is not showing connections which can be reached by stringing together shorter ones
+   //      The difficulty is not showing connections which can be reached by stringing together shorter ones.
+   //      I feel this is a standard graph theory problem but am a bit rusty on the matter.
 //    val skippingConns = (2 until topPlaylists.size).flatMap(j =>
 //      (0 to j-2).map { i =>
 //        val overlap = topPlaylists(i).tracks.toSet & topPlaylists(j).tracks.toSet
@@ -219,8 +220,8 @@ object SpotifyDataUtil {
       nicePlaylist.tracks.map(track => FrontendData.TransmissibleTrack(
         track.name,
         track.album,
-        track.artists.mkString(", "),
-        track.affinity.mkString(", ")))))
+        ns(track.artists.mkString(", ")),
+        ns(track.affinity.mkString(", "))))))
 
     FrontendData(
       title,
