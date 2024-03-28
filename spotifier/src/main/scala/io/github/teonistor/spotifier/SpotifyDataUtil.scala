@@ -56,7 +56,7 @@ object SpotifyDataUtil {
     val result = playlists
       .get("items").asScala
       .map(_.get("item").get("data"))
-      // Keep Nones for a moment until we validate sizes
+      // Keep Nones for a moment until we validate sizes. They will be things like "Liked Songs" which appear in the playlist list but aren't real playlists
       .map(item => item.get("uri").textValue() match {
         case s"spotify:playlist:$id" => Some((item.get("name").textValue(), id))
         case _=> None
@@ -76,9 +76,6 @@ object SpotifyDataUtil {
     Iterator.iterate(0)(_+limit)
       .map(pullPlaylistContent(web, objectMapper, uriBuilder, playlistId, limit, _))
       .map(playlistStructureToNice(objectMapper, _))
-//      .takeWhile {case (playlist, reportedSize) =>
-//        playlist.tracks.size >= limit
-//      }
       .takeWhile(playlist => playlist != null && playlist.tracks.nonEmpty)
       .reduce[NicePlaylist] { case (l, r) =>
         NicePlaylist(l.name, l.owner, l.tracks ++ r.tracks)
@@ -109,7 +106,10 @@ object SpotifyDataUtil {
         .bodyToMono(classOf[JsonNode])
         .block()
     catch {
-      case _: NotFound => null  // Hack!
+      // To get around the API returning 404 if asked for a slice past the end of a thing which does exist. The following
+      // method is null-lenient, and we eventually filter them out... which is a bit naff because an unfortunately positioned
+      // null could cause a slice of a playlist to silently go missing
+      case _: NotFound => null
     }
   }
 
@@ -118,7 +118,7 @@ object SpotifyDataUtil {
       .get("data")
       .get("playlistV2")
 
-    val result = playlist
+    playlist
       .get("content")
       .get("items").asScala
       .foldLeft(NicePlaylist.empty(
@@ -152,40 +152,7 @@ object SpotifyDataUtil {
               .get("name").textValue()))),
           Option(affinity).getOrElse(Vector.empty))
       }
-
-//    val actualSize = result.tracks.size
-//    val reportedSize = playlist.get("content").get("totalCount").intValue()
-//    if (actualSize != reportedSize)
-//      throw new IllegalStateException(s"Number of tracks [$actualSize] in the structure of [${playlist.get("name")}] differs from reported playlist size [$reportedSize]. " +
-//        "If it is very large, some unspoken limit on the Spotify API may have been reached (or there's a bug)")
-
-    result
   }
-
-  /*private def pageAwareGet[T](getTree: (Int, Int) => Mono[JsonNode],
-//                              getActualSizeFromTree: JsonNode => Int,
-                              getReportedSizeFromTree: JsonNode => Int,
-                              mapper: java.util.function.Function[JsonNode, T],
-                              reducer: BiFunction[T,T,T]): Mono[T] = {
-    val limit = 200
-    getTree(limit, 0)
-      .flatMapMany[JsonNode] { first =>
-        val pagesRequired = (getReportedSizeFromTree(first) + limit - 1) / limit
-
-        if (pagesRequired < 2)
-          Mono.just(first)
-
-        else {
-          val function:java.util.function.Function[Int, Publisher[JsonNode]] = getTree(limit, _)
-          Flux.concat(Mono.just(first) /*.asInstanceOf[Publisher[JsonNode]]*/ ,
-            Flux.fromIterable((1 until pagesRequired)
-                .map(_ * limit).asJava)
-              .flatMap(function))
-        }
-      }
-      .map(mapper)
-      .reduce(reducer)
-  }*/
 
   def comparisonise(playlists: Vector[NicePlaylist], title: String): FrontendData = {
     val trackMaps = playlists
@@ -205,7 +172,7 @@ object SpotifyDataUtil {
 
    // TODO Connections skipping columns
    //      The difficulty is not showing connections which can be reached by stringing together shorter ones.
-   //      I feel this is a standard graph theory problem but am a bit rusty on the matter.
+   //      I feel this is a standard weighted graph theory problem but am a bit rusty on the matter.
 //    val skippingConns = (2 until topPlaylists.size).flatMap(j =>
 //      (0 to j-2).map { i =>
 //        val overlap = topPlaylists(i).tracks.toSet & topPlaylists(j).tracks.toSet

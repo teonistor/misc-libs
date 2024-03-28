@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 object Coordinator {
 
-  private val credLocation = path("spotify-creds3")
+  private val credLocation = path("spotify-creds")
   private val cacheLocation = path("spotify-cache")
   private val outputLocation = path("spotify-out")
 
@@ -28,11 +28,6 @@ object Coordinator {
   private val authorizationCredLocation = credLocation resolve "authorization"
   private val clientTokenCredLocation = credLocation resolve "client-token"
 
-//  private val executor = newFixedThreadPool(8, (r: Runnable) => {
-//    val t = new Thread(r)
-//    t.setDaemon(true)
-//    t
-//  })
   private lazy val web = WebClient.builder()
     .codecs(_.defaultCodecs().maxInMemorySize(1024 * 1024 * 1024))
     .defaultHeader("authorization", readString(authorizationCredLocation))
@@ -47,9 +42,6 @@ object Coordinator {
     .scheme("https")
     .host("api-partner.spotify.com")
     .port(443)
-
-//  private def cachingJson(cacheFile: String)(func: => JsonNode) =
-//     cachingObj[JsonNode](_.toPrettyString, objectMapper.readTree)(cacheFile)(func)
 
   def createDirectoiesAndFiles(): Unit = {
     List(credLocation, cacheLocation, archiveOutputLocation, frontendOutputLocation)
@@ -70,22 +62,10 @@ object Coordinator {
     cachingJson(objectMapper, cacheLocation.resolve("coordinates").resolve(today + ".json").toString, new TypeReference[Vector[(String,String)]]{}) {
       playlistCoordinatesToNice(pullPlaylistCoordinates(web, objectMapper, uriBuilder())).toVector
     }
-
-//    cachingObj(objectMapper.writeValueAsString(_), objectMapper.readValue(_, new TypeReference[Vector[(String,String)]]{}))(
-//      cacheLocation.resolve("coordinates").resolve(today + ".json").toString) {
-//      playlistCoordinatesToNice(pullPlaylistCoordinates(web, objectMapper, uriBuilder())).toVector
-//    }
-
-//    val v = Iterator(cachingJson(cacheLocation.resolve("coordinates").resolve(today + ".json").toString)(
-//        pullPlaylistCoordinates(web, objectMapper, uriBuilder())))
-//      .flatMap(playlistCoordinatesToNice)
       .filter(playlistName
         .map(name => (nameAndId:(String,String)) => name == nameAndId._1)
         .getOrElse(_=> true))
-//      .toVector
       .parallelMap { case (name, id) =>
-//        cachingObj()
-//
         objectMapper.readValue(
           cachingString(archiveOutputLocation
             .resolve(cleanName(name))
@@ -127,16 +107,6 @@ object Coordinator {
           .readValue(readString(path(pathStr)), classOf[NicePlaylist])) }
       .toVector
 
-//    val plsts = tuples
-//      .map {
-//        case (_, date, _, pathStr) => objectMapper
-//          .readValue(readString(path(pathStr)), classOf[NicePlaylist])
-//          .copy(name = date) }
-////      .map(_._4)
-////      .map(path(_))
-////      .map(readString)
-////      .map(objectMapper.readValue(_, classOf[NicePlaylist]))
-//      .toVector
     val result = comparisonise(
       datesAndPlaylists.map {
         case (date, playlist) => playlist.copy(name = date)},
@@ -152,28 +122,4 @@ object Coordinator {
 
   private def cleanName(playlistName:String) =
     playlistName.replaceAll("[^a-zA-Z0-9,_-]+", "_")
-
-  /*def fixYesterday()={
-    val finderToday = ".+/([^/]+)/([^/]+)/([^/]+).json".r
-    val finderYesterday = ".+/2024-03-09/([^/]+)".r
-
-    val todays = walk(cacheLocation)
-      .iterator().asScala
-      .map(_.toString)
-      .filter(!_.contains("2024-03-09"))
-      .flatMap(path => path match {
-        case finderToday(name, id, date) => Some((name, date, id, path))
-        case _ => None
-      })
-
-    val yesterdays = walk(cacheLocation)
-      .iterator().asScala
-      .map(_.toString)
-      .flatMap(path => path match {
-        case finderYesterday(name) => Some((name, path))
-        case _ => None
-      })
-
-      // Meh it's not worth it
-  }*/
 }
