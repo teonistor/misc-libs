@@ -51,12 +51,12 @@ object Coordinator {
   }
 
  /* Top-level actions include:
-    * Taking a snapshot of the account
-    * Creating frontend data from (the latest/only version of) a list of playlists
-    * Creating frontend data from the version history of one playlist
+    [/] Taking a snapshot of the account
+    [ ] Creating frontend data from (the latest/only version of) a list of playlists
+    [/] Creating frontend data from the version history of one playlist
     */
 
-  def execute(playlistName: Option[String] = None): Unit = {
+  def snapshotAccount(playlistName: Option[String] = None): Unit = {
     val today = LocalDate.now().format(ISO_LOCAL_DATE)
 
     cachingJson(objectMapper, cacheLocation.resolve("coordinates").resolve(today + ".json").toString, new TypeReference[Vector[(String,String)]]{}) {
