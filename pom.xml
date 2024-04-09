@@ -16,7 +16,6 @@
 
     <modules>
         <module>observer</module>
-        <module>poor-mans-pipeline</module>
         <module>scalamacros</module>
         <module>scalamacros-test</module>
         <module>scalatest-utils</module>
