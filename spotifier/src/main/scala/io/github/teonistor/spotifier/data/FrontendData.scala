@@ -15,14 +15,16 @@ object FrontendData {
   case class TransmissiblePlaylist(name: String,
                                    tracks: Vector[TransmissibleTrack])
 
-  case class TransmissibleTrack(name: String,
+  case class TransmissibleTrack(id:String,  // Double whammy! Let's use this to send the Spotify ID *and* to support click-selection!
+                                name: String,
                                 additionalLines: Vector[String])
 
-  def TransmissibleTrack(name: String, additionalLines: String*): TransmissibleTrack =
-    TransmissibleTrack(name, additionalLines.toVector)
+  def TransmissibleTrack(id:String, name: String, additionalLines: String*): TransmissibleTrack =
+    TransmissibleTrack(id, name, additionalLines.toVector)
 
   case class TransmissibleConnector(startCol: Int,
                                     endCol: Int,
                                     startRow: Int,
-                                    endRow: Int)
+                                    endRow: Int,
+                                    trackId: Int)
 }
