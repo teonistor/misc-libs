@@ -157,7 +157,7 @@ object SpotifyDataUtil {
   def comparisonise(playlists: Vector[NicePlaylist], title: String): FrontendData = {
     val trackMaps = playlists
       .map(_.tracks.iterator
-        // A change in affinity should cause a track to appear as two
+        // A change in affinity should not cause a track to lose identity
         .map(_.copy(affinity = Vector.empty))
         .zipWithIndex.toMap)
 
@@ -173,6 +173,21 @@ object SpotifyDataUtil {
    // TODO Connections skipping columns
    //      The difficulty is not showing connections which can be reached by stringing together shorter ones.
    //      I feel this is a standard weighted graph theory problem but am a bit rusty on the matter.
+   // Update: idea: track + 2 indices. Group by track, sort by column. Those are your lines.
+
+    val ignoringAffinity = playlists.to(LazyList)
+      .zipWithIndex
+      .flatMap { case (playlist, col) =>
+        playlist.tracks.iterator
+        .zipWithIndex
+        .map { case (track, row) =>
+          (track.copy(affinity = Vector.empty), (col, row))
+        }
+      }
+      .groupMap(_._1)(_._2).view
+      .mapValues(_.sortBy(_._1).to(Vector))
+      .toMap
+
 //    val skippingConns = (2 until topPlaylists.size).flatMap(j =>
 //      (0 to j-2).map { i =>
 //        val overlap = topPlaylists(i).tracks.toSet & topPlaylists(j).tracks.toSet
@@ -185,6 +200,7 @@ object SpotifyDataUtil {
     val playlistsOut = playlists.map(nicePlaylist => FrontendData.TransmissiblePlaylist(
       nicePlaylist.name,
       nicePlaylist.tracks.map(track => FrontendData.TransmissibleTrack(
+        "TODO",
         track.name,
         track.album,
         ns(track.artists.mkString(", ")),
