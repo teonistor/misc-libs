@@ -3,6 +3,7 @@ package io.github.teonistor.spotifier
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import io.github.teonistor.spotifier.GeneralUtil.{ns, withWebClientExceptionLogging}
+import io.github.teonistor.spotifier.data.FrontendData.TransmissibleConnector
 import io.github.teonistor.spotifier.data.{FrontendData, NicePlaylist}
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
@@ -140,6 +141,8 @@ object SpotifyDataUtil {
           .get("data")
 
         nicePlaylist.addTrack(
+          // TODO WINGED ALMOST CERTAINLY WRONG
+          ns(track.get("id").textValue()),
           ns(track.get("name").textValue()),
           ns(track.get("albumOfTrack")
             .get("name").textValue()),
@@ -155,52 +158,36 @@ object SpotifyDataUtil {
   }
 
   def comparisonise(playlists: Vector[NicePlaylist], title: String): FrontendData = {
-    val trackMaps = playlists
-      .map(_.tracks.iterator
-        // A change in affinity should not cause a track to lose identity
-        .map(_.copy(affinity = Vector.empty))
-        .zipWithIndex.toMap)
 
-    val immediateConnectors = (1 until playlists.size).flatMap { endCol =>
-      val startCol = endCol - 1
-      val leftTracks = trackMaps(startCol)
-      val rightTracks = trackMaps(endCol)
-
-      (leftTracks.keySet & rightTracks.keySet).map(commonTrack =>
-        FrontendData.TransmissibleConnector(startCol, endCol, leftTracks(commonTrack), rightTracks(commonTrack)))
-    }
-
-   // TODO Connections skipping columns
-   //      The difficulty is not showing connections which can be reached by stringing together shorter ones.
-   //      I feel this is a standard weighted graph theory problem but am a bit rusty on the matter.
-   // Update: idea: track + 2 indices. Group by track, sort by column. Those are your lines.
-
-    val ignoringAffinity = playlists.to(LazyList)
+    val connectorsByIsSkipping = playlists.to(LazyList)
       .zipWithIndex
       .flatMap { case (playlist, col) =>
         playlist.tracks.iterator
-        .zipWithIndex
-        .map { case (track, row) =>
-          (track.copy(affinity = Vector.empty), (col, row))
-        }
+          .zipWithIndex
+          .map { case (track, row) =>
+            // This predates the use of IDs. Conceivably the ID should suffice...
+            (track.copy(affinity = Vector.empty), (col, row))
+          }
       }
       .groupMap(_._1)(_._2).view
-      .mapValues(_.sortBy(_._1).to(Vector))
-      .toMap
-
-//    val skippingConns = (2 until topPlaylists.size).flatMap(j =>
-//      (0 to j-2).map { i =>
-//        val overlap = topPlaylists(i).tracks.toSet & topPlaylists(j).tracks.toSet
-//        (i, j, overlap.size)
-//      })
-//    analysis
-//      .sortBy(u => u._2 - u._1)
-//      .foreach(println)
+      .mapValues(_.sortBy(_._1).toList)
+      .filter(_._2.size > 1)
+      .flatMap { case (track, occurrences) =>
+        occurrences.sliding(2).map {
+          case (startCol, startRow) :: (endCol, endRow) :: Nil => TransmissibleConnector(
+            startCol,
+            endCol,
+            startRow,
+            endRow,
+            track.id)
+        }
+      }.toVector
+      .groupBy(conn => conn.endCol - conn.startCol > 1)
 
     val playlistsOut = playlists.map(nicePlaylist => FrontendData.TransmissiblePlaylist(
       nicePlaylist.name,
       nicePlaylist.tracks.map(track => FrontendData.TransmissibleTrack(
-        "TODO",
+        track.id,
         track.name,
         track.album,
         ns(track.artists.mkString(", ")),
@@ -209,7 +196,7 @@ object SpotifyDataUtil {
     FrontendData(
       title,
       playlistsOut,
-      immediateConnectors.to(Vector),
-      Vector.empty)
+      connectorsByIsSkipping.getOrElse(false, Vector.empty),
+      connectorsByIsSkipping.getOrElse(true, Vector.empty))
   }
 }

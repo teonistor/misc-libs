@@ -26,5 +26,6 @@ object FrontendData {
                                     endCol: Int,
                                     startRow: Int,
                                     endRow: Int,
-                                    trackId: Int)
+                                    trackId: String) // I'm tempted to say Any, but really it has to be the same as TransmissibleTrack.id and I'm not about ot type-parameterise the whole thing
+  // TODO Preconditions? Which are really postconditions
 }

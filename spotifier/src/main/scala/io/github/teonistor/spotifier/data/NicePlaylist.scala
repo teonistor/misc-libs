@@ -10,8 +10,8 @@ case class NicePlaylist(name: String,
                         owner: String,
                         tracks: Vector[NiceTrack]) {
 
-  def addTrack(name: String, album: String, artists: Vector[String], affinity: Vector[String]) =
-    new NicePlaylist(this.name, owner, this.tracks :+ NiceTrack(name, album, artists, affinity))
+  def addTrack(id: String, name: String, album: String, artists: Vector[String], affinity: Vector[String]) =
+    new NicePlaylist(this.name, owner, this.tracks :+ NiceTrack(id, name, album, artists, affinity))
 }
 
 object NicePlaylist {
@@ -19,7 +19,8 @@ object NicePlaylist {
   def empty(name: String, owner: String) = new NicePlaylist(name, owner, Vector.empty)
 
   @JsonInclude(NON_EMPTY)
-  case class NiceTrack(name: String,
+  case class NiceTrack(id: String,
+                       name: String,
                        album: String,
                        artists: Vector[String],
                        affinity: Vector[String])
