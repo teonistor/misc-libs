@@ -141,8 +141,7 @@ object SpotifyDataUtil {
           .get("data")
 
         nicePlaylist.addTrack(
-          // TODO WINGED ALMOST CERTAINLY WRONG
-          ns(track.get("id").textValue()),
+          ns(track.get("uri").textValue()),  // Something like spotify:track:1dtfTodJ3Uld533EXKQokC
           ns(track.get("name").textValue()),
           ns(track.get("albumOfTrack")
             .get("name").textValue()),
