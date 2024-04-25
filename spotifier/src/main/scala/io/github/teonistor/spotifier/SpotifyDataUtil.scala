@@ -156,6 +156,31 @@ object SpotifyDataUtil {
       }
   }
 
+  def backfillIds(playlists: Vector[NicePlaylist]):Vector[NicePlaylist] = {
+
+    val finder = playlists
+      .flatMap(_.tracks)
+      .map(track => (track.copy(id = null, affinity = null), track.id))
+      //   Meh... maybe we should validate that it didn't go wrong
+      //      .groupMapReduce(_._1)(_._2){
+      //        case (l,r) => println(???)
+      //      }
+      .toMap
+
+    val result = playlists.map(playlist => playlist.copy(
+      tracks = playlist.tracks.map(track => finder
+        .get(track.copy(affinity = null))
+        .map(id => track.copy(id = id))
+        .getOrElse(track))))
+
+    val unresolved = result.flatMap(_.tracks)
+      .filter(_.id == null)
+    if (unresolved.nonEmpty)
+      println("backfillIds: Warning! The following tracks were left without an ID: " + unresolved.mkString("\n  ", "\n  ", ""))
+
+    result
+  }
+
   def comparisonise(title: String, playlists: Vector[NicePlaylist]): FrontendData = {
 
     val connectorsByIsSkipping = playlists.to(LazyList)

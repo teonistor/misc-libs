@@ -7,6 +7,38 @@ import org.scalatest.funsuite.AnyFunSuite
 
 class SpotifyDataUtilTest extends AnyFunSuite {
 
+  test("backfill IDs") {
+    val result = SpotifyDataUtil.backfillIds(Vector(
+      NicePlaylist("First", "irrelevant", Vector(
+        NiceTrack(null, "name 1", "album", Vector("artist 1"), Vector.empty),
+        NiceTrack(null, "name 2", "album", Vector("artist 2"), Vector.empty),
+        NiceTrack(null, "name 3", "album", Vector("artist 3"), Vector.empty))),
+      NicePlaylist("Second", "irrelevant", Vector(
+        NiceTrack(null, "name 2", "album", Vector("artist 2"), Vector.empty),
+        NiceTrack(null, "name 1", "album", Vector("artist 1"), Vector.empty),
+        NiceTrack(null, "name 5", "other", Vector("artist 5"), Vector.empty))),
+      NicePlaylist("Third", "irrelevant", Vector(
+        NiceTrack("id1", "name 1", "album", Vector("artist 1"), Vector.empty),
+        NiceTrack("id2", "name 2", "album", Vector("artist 2"), Vector.empty),
+        NiceTrack("id4", "name 4", "album", Vector("artist 4"), Vector.empty),
+        NiceTrack("id3", "name 3", "album", Vector("artist 3"), Vector.empty)))))
+
+    assert(result == Vector(
+      NicePlaylist("First", "irrelevant", Vector(
+        NiceTrack("id1", "name 1", "album", Vector("artist 1"), Vector.empty),
+        NiceTrack("id2", "name 2", "album", Vector("artist 2"), Vector.empty),
+        NiceTrack("id3", "name 3", "album", Vector("artist 3"), Vector.empty))),
+      NicePlaylist("Second", "irrelevant", Vector(
+        NiceTrack("id2", "name 2", "album", Vector("artist 2"), Vector.empty),
+        NiceTrack("id1", "name 1", "album", Vector("artist 1"), Vector.empty),
+        NiceTrack(null, "name 5", "other", Vector("artist 5"), Vector.empty))),
+      NicePlaylist("Third", "irrelevant", Vector(
+        NiceTrack("id1", "name 1", "album", Vector("artist 1"), Vector.empty),
+        NiceTrack("id2", "name 2", "album", Vector("artist 2"), Vector.empty),
+        NiceTrack("id4", "name 4", "album", Vector("artist 4"), Vector.empty),
+        NiceTrack("id3", "name 3", "album", Vector("artist 3"), Vector.empty)))))
+  }
+
   test("comparisonise") {
     val result = SpotifyDataUtil.comparisonise("Bob", Vector(
       NicePlaylist("First", "irrelevant", Vector(
