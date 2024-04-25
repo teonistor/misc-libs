@@ -107,9 +107,10 @@ object Coordinator {
           .readValue(readString(path(pathStr)), classOf[NicePlaylist])) }
       .toVector
 
-    val result = comparisonise(datesAndPlaylists.last._2.name, datesAndPlaylists.map {
+    val playlistsWithDatesAndTrackIds = backfillIds(datesAndPlaylists.map {
       case (date, playlist) => playlist.copy(name = date)
     })
+    val result = comparisonise(datesAndPlaylists.last._2.name, playlistsWithDatesAndTrackIds)
 
     val directory = frontendOutputLocation.resolve(today)
     directory.toFile.mkdirs()
