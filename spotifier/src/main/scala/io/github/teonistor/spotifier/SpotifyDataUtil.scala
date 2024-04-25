@@ -3,7 +3,7 @@ package io.github.teonistor.spotifier
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import io.github.teonistor.spotifier.GeneralUtil.{ns, withWebClientExceptionLogging}
-import io.github.teonistor.spotifier.data.FrontendData.TransmissibleConnector
+import io.github.teonistor.spotifier.data.FrontendData.{TransmissibleConnector, TransmissiblePlaylist, TransmissibleTrack}
 import io.github.teonistor.spotifier.data.{FrontendData, NicePlaylist}
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
@@ -157,7 +157,7 @@ object SpotifyDataUtil {
       }
   }
 
-  def comparisonise(playlists: Vector[NicePlaylist], title: String): FrontendData = {
+  def comparisonise(title: String, playlists: Vector[NicePlaylist]): FrontendData = {
 
     val connectorsByIsSkipping = playlists.to(LazyList)
       .zipWithIndex
@@ -184,9 +184,9 @@ object SpotifyDataUtil {
       }.toVector
       .groupBy(conn => conn.endCol - conn.startCol > 1)
 
-    val playlistsOut = playlists.map(nicePlaylist => FrontendData.TransmissiblePlaylist(
+    val playlistsOut = playlists.map(nicePlaylist => TransmissiblePlaylist(
       nicePlaylist.name,
-      nicePlaylist.tracks.map(track => FrontendData.TransmissibleTrack(
+      nicePlaylist.tracks.map(track => TransmissibleTrack(
         track.id,
         track.name,
         track.album,
