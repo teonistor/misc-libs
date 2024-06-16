@@ -1,8 +1,19 @@
 name: Java CI
 
-on: [ push ]
+on:
+  workflow_dispatch:
+    inputs:
+      magicLink:
+        description: 'Dummy input'
+        required: true
+        default: '12345'
 
 jobs:
+  printInputs:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Env: ${{ github.event.inputs.magicLink }}"
   build:
     runs-on: ubuntu-latest
     steps:
