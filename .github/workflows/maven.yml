@@ -1,4 +1,4 @@
-name: Java CI
+name: AAaaa
 
 on:
   workflow_dispatch:
