@@ -30,8 +30,8 @@ object Coordinator {
 
   private lazy val web = WebClient.builder()
     .codecs(_.defaultCodecs().maxInMemorySize(1024 * 1024 * 1024))
-    .defaultHeader("authorization", readString(authorizationCredLocation))
-    .defaultHeader("client-token", readString(clientTokenCredLocation))
+    .defaultHeader("authorization", readString(authorizationCredLocation).strip())
+    .defaultHeader("client-token", readString(clientTokenCredLocation).strip())
     .build()
 
   private val objectMapper = JsonMapper.builder()

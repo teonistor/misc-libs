@@ -7,7 +7,7 @@ import io.github.teonistor.spotifier.data.FrontendData.{TransmissibleConnector, 
 import io.github.teonistor.spotifier.data.{FrontendData, NicePlaylist}
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
-import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
+import org.springframework.web.reactive.function.client.WebClientResponseException.{Forbidden, NotFound, Unauthorized}
 import org.springframework.web.util.UriComponentsBuilder
 
 import java.net.URLEncoder.encode
@@ -72,7 +72,7 @@ object SpotifyDataUtil {
     result.flatten
   }
 
-  def pullPlaylistAndMakeNice(web:WebClient, objectMapper:ObjectMapper, uriBuilder:UriComponentsBuilder, playlistId: String): NicePlaylist ={
+  def pullPlaylistAndMakeNice(web:WebClient, objectMapper:ObjectMapper, uriBuilder: => UriComponentsBuilder, playlistId: String): NicePlaylist ={
     val limit = 200
     Iterator.iterate(0)(_+limit)
       .map(pullPlaylistContent(web, objectMapper, uriBuilder, playlistId, limit, _))
@@ -83,7 +83,7 @@ object SpotifyDataUtil {
       }
   }
 
-  private def pullPlaylistContent(web: WebClient, objectMapper: ObjectMapper, uriBuilder: UriComponentsBuilder, playlistId: String, limit: Int, offset: Int): JsonNode = withWebClientExceptionLogging {
+  private def pullPlaylistContent(web: WebClient, objectMapper: ObjectMapper, uriBuilder: => UriComponentsBuilder, playlistId: String, limit: Int, offset: Int): JsonNode = withWebClientExceptionLogging {
     val variables = objectMapper.getNodeFactory.objectNode()
       .put("uri", "spotify:playlist:" + playlistId)
       .put("limit", limit)
@@ -107,6 +107,8 @@ object SpotifyDataUtil {
         .bodyToMono(classOf[JsonNode])
         .block()
     catch {
+      case e: Forbidden => System.err.println(e.getResponseBodyAsString); e.printStackTrace(); throw e
+      case e: Unauthorized => System.err.println(e.getResponseBodyAsString); e.printStackTrace(); throw e
       // To get around the API returning 404 if asked for a slice past the end of a thing which does exist. The following
       // method is null-lenient, and we eventually filter them out... which is a bit naff because an unfortunately positioned
       // null could cause a slice of a playlist to silently go missing
