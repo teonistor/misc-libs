@@ -13,6 +13,7 @@ class WithMocksTest extends AnyFunSuiteLike {
   WithMocks.mocksTest("correct use", (x:TestType) =>
     assert(x.aMethod == "orange"))
 
+  // We don't need the real mock() method, just something to call by that name with the right signature
   private def mock[T] = new TestType {
     override def aMethod: String = "orange"
   }
