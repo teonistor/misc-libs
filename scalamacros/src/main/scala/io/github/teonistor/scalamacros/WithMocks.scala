@@ -7,12 +7,12 @@ object WithMocks {
   /**
    * Input usage:
    *
-   * withMocks("do something", (a: Apple, b: Banana) => {
+   * mocksTest("do something", (a: Apple, b: Banana) => {
    *   someAssertions(a)
    *   moreAssertions(b)
    * })
    *
-   * is equivalent to:
+   * turns into:
    *
    * test("do something") {
    *   val a = mock[Apple]
