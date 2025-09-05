@@ -85,12 +85,12 @@ object SpotifyDataUtil {
       .put("includeFoldersWhenFlattening", true)
       .put("withCuration", false)
       .set[ObjectNode]("expandedFolders", objectMapper.createArrayNode())
-      .set[ObjectNode]("features", objectMapper.createArrayNode().add("LIKED_SONGS").add("YOUR_EPISODES"))
+      .set[ObjectNode]("features", objectMapper.createArrayNode().add("LIKED_SONGS").add("YOUR_EPISODES_V2"))
       .set[ObjectNode]("filters", objectMapper.createArrayNode().add("Playlists"))
     val extensions = objectMapper.createObjectNode()
       .set[JsonNode]("persistedQuery", objectMapper.createObjectNode()
         .put("version", 1)
-        .put("sha256Hash", "0cc9ca58bd1dad0ce11712768bf4357ca8a9c6dab1dc0b43331fe526c47ff885"))
+        .put("sha256Hash", "2de10199b2441d6e4ae875f27d2db361020c399fb10b03951120223fbed10b08"))
     val uri = uriBuilder
       .path("pathfinder/v1/query")
       .queryParam("operationName", "libraryV3")
@@ -151,17 +151,17 @@ object SpotifyDataUtil {
     val extensions = objectMapper.getNodeFactory.objectNode()
       .set[JsonNode]("persistedQuery", objectMapper.getNodeFactory.objectNode()
         .put("version", 1)
-        .put("sha256Hash", "13119b22ace87552aa2c15d8171d9d060bc2933644a53d41094d677ece3d132c"))
+        .put("sha256Hash", "837211ef46f604a73cd3d051f12ee63c81aca4ec6eb18e227b0629a7b36adad3"))
     val uri = uriBuilder
-      .path("pathfinder/v1/query")
-      .queryParam("operationName", "fetchPlaylist")
+      .path("pathfinder/v2/query")
+      .queryParam("operationName", "fetchPlaylistContents")
       .queryParam("variables", encode(variables.toString, UTF_8))
       .queryParam("extensions", encode(extensions.toString, UTF_8))
       .build(true)
       .toUri
 
     try
-      web.get()
+      web.post()
         .uri(uri).asInstanceOf[RequestHeadersSpec[_]]
         .retrieve()
         .bodyToMono(classOf[JsonNode])
