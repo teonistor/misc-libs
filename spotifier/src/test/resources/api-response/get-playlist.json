@@ -1,0 +1,57 @@
+{
+  "items": [
+    {
+      "track": {
+        "artists": [
+          {
+            "name": "Odiseo"
+          }
+        ],
+        "album": {
+          "name": "Progressive Psy Trance Picks Vol.8"
+        },
+        "name": "Api",
+        "id": "4rzfv0JLZfVhOhbSQ8o5jZ"
+      },
+      "added_by": {
+        "id": "jmperezperez"
+      }
+    },
+    {
+      "track": {
+        "artists": [
+          {
+            "name": "Vlasta Marek"
+          },{
+            "name": "Vlasta Marek 2"
+          }],
+        "album": {
+          "name": "Wellness & Dreaming Source"
+        },
+        "name": "Is",
+        "id": "5o3jMYOSbaVz3tkgwhELSV"
+      },
+      "added_by": {
+        "id": "jmperezperez"
+      }
+    },
+    {
+      "track": {
+        "artists": [
+          {
+            "name": "LCD Soundsystem"
+          }
+        ],
+        "album": {
+          "name": "This Is Happening"
+        },
+        "name": "All I Want",
+        "id": "4Cy0NHJ8Gh0xMdwyM9RkQm"
+      },
+      "added_by": {
+        "id": "jmperezperez"
+      }
+    }
+  ],
+  "next": "https://api.spotify.com/v1/playlists/3cEYpjA9oz9GiPac4AsH4n/tracks?offset=3&limit=3&additional_types=track&fields=items(added_by.id,track.album.name,track.artists(name),track.id,track.name),next&locale=en-GB,en;q%3D0.6"
+}

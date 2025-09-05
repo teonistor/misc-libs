@@ -4,17 +4,75 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import io.github.teonistor.spotifier.GeneralUtil.{ns, withWebClientExceptionLogging}
 import io.github.teonistor.spotifier.data.FrontendData.{TransmissibleConnector, TransmissiblePlaylist, TransmissibleTrack}
+import io.github.teonistor.spotifier.data.NicePlaylist.NiceTrack
 import io.github.teonistor.spotifier.data.{FrontendData, NicePlaylist}
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
 import org.springframework.web.reactive.function.client.WebClientResponseException.{Forbidden, NotFound, Unauthorized}
 import org.springframework.web.util.UriComponentsBuilder
+import reactor.core.publisher.Flux
 
+import java.lang.{Iterable => JIter}
 import java.net.URLEncoder.encode
 import java.nio.charset.StandardCharsets.UTF_8
-import scala.jdk.CollectionConverters.IterableHasAsScala
+import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala}
+
+class SpotifyDataUtil(webHelper: WebHelper, objectMapper: ObjectMapper) {
+
+  private val getItemsArr: java.util.function.Function[JsonNode, JIter[JsonNode]] =
+    json => () => json.get("items").elements
+
+  private val trackJsonToNiceTrack: java.util.function.Function[JsonNode, NiceTrack] =
+    json => NiceTrack(
+      json.get("id").textValue(),
+      json.get("name").textValue(),
+      json.get("album").get("name").textValue(),
+      json.get("artists").elements().asScala.map(_.get("name").textValue()).to(Vector),
+      Vector.empty)
+
+  def newListPlaylists(): Flux[NicePlaylist] =
+    webHelper.getRepeatedly("https://api.spotify.com/v1/me/playlists")
+      .flatMapIterable(getItemsArr)
+      .map(json => NicePlaylist.empty(json.get("name").textValue, json.get("owner").get("display_name").textValue))
+
+  def newGetPlaylist(): Flux[NiceTrack] =
+    webHelper.getRepeatedly("https://api.spotify.com/v1/playlists/3cEYpjA9oz9GiPac4AsH4n/tracks?fields=items%28added_by.id%2Ctrack.album.name%2Ctrack.artists%28name%29%2Ctrack.id%2Ctrack.name%29%2Cnext&additional_types=track%2Cepisode")
+      .flatMapIterable(getItemsArr)
+      .map(json => json.get("track"))
+      .map(trackJsonToNiceTrack)
+
+  def newGetTopTracks(): Flux[NiceTrack] =
+    webHelper.getRepeatedly("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=50")
+      .flatMapIterable(getItemsArr)
+      .map(trackJsonToNiceTrack)
+}
 
 object SpotifyDataUtil {
+
+  def main(args: Array[String]): Unit = {
+//    new SpotifyDataUtil(new WebHelper(
+//      WebClient.builder()
+//        .defaultHeader("Authorization", "Bearer " + AuthHelper.obtainToken()).build()),
+//      JsonMapper.builder().findAndAddModules().build())
+//
+//      .newGetPlaylist()
+//      .collectList()
+//      .block()
+//      .forEach(println)
+
+// Can't get On Repeat and Repeat Rewind as playlists, but could perhaps get top tracks
+// https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks
+
+// Can't even get Tops of the years and Blends!!! Ridiculous!
+
+//    println(WebClient.builder()
+//      .defaultHeader("Authorization", "Bearer " + AuthHelper.obtainToken()).build()
+//      .get()
+//      .uri("https://api.spotify.com/v1/playlists/7I0GeD6DEOLuVC9ljL6w3h").asInstanceOf[RequestHeadersSpec[_]]
+//      .retrieve()
+//      .bodyToMono(classOf[JsonNode])
+//      .block())
+  }
 
   def pullPlaylistCoordinates(web:WebClient, objectMapper:ObjectMapper, uriBuilder:UriComponentsBuilder): JsonNode = withWebClientExceptionLogging {
     val variables = objectMapper.createObjectNode()
@@ -78,9 +136,11 @@ object SpotifyDataUtil {
       .map(pullPlaylistContent(web, objectMapper, uriBuilder, playlistId, limit, _))
       .map(playlistStructureToNice(objectMapper, _))
       .takeWhile(playlist => playlist != null && playlist.tracks.nonEmpty)
-      .reduce[NicePlaylist] { case (l, r) =>
+      .reduceOption[NicePlaylist] { case (l, r) =>
         NicePlaylist(l.name, l.owner, l.tracks ++ r.tracks)
       }
+      // TODO What did I just do here
+      .getOrElse(NicePlaylist("NAFF", "NAFF", Vector.empty))
   }
 
   private def pullPlaylistContent(web: WebClient, objectMapper: ObjectMapper, uriBuilder: => UriComponentsBuilder, playlistId: String, limit: Int, offset: Int): JsonNode = withWebClientExceptionLogging {
