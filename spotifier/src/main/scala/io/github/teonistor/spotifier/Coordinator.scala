@@ -56,6 +56,17 @@ object Coordinator {
     [/] Creating frontend data from the version history of one playlist
     */
 
+  // Further reading
+  // https://www.drmare.com/music-converter/user-guide.html
+  // https://www.reddit.com/r/drmremoval/comments/9aqxhn/which_is_better/?rdt=61464
+  // https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
+
+  //  reqs from rl conv
+  //    Rhys: green line if it goes up
+  //    Matt: Histogram of recurence
+  //    Geo: sort by one playlist to see as many straight (or at least non-intersecting) lines
+  //    Me: click a song to highlight
+
   def snapshotAccount(playlistName: Option[String] = None): Unit = {
     val today = LocalDate.now().format(ISO_LOCAL_DATE)
 
