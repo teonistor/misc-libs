@@ -6,15 +6,15 @@ import io.github.teonistor.spotifier.GeneralUtil.{ns, withWebClientExceptionLogg
 import io.github.teonistor.spotifier.data.FrontendData.{TransmissibleConnector, TransmissiblePlaylist, TransmissibleTrack}
 import io.github.teonistor.spotifier.data.NicePlaylist.NiceTrack
 import io.github.teonistor.spotifier.data.{FrontendData, NicePlaylist}
+import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
+import org.springframework.web.reactive.function.client.WebClient.{RequestBodyUriSpec, RequestHeadersUriSpec}
 import org.springframework.web.reactive.function.client.WebClientResponseException.{Forbidden, NotFound, Unauthorized}
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Flux
 
 import java.lang.{Iterable => JIter}
-import java.net.URLEncoder.encode
-import java.nio.charset.StandardCharsets.UTF_8
+import java.net.URI
 import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala}
 
 class SpotifyDataUtil(webHelper: WebHelper, objectMapper: ObjectMapper) {
@@ -76,34 +76,30 @@ object SpotifyDataUtil {
 
   def pullPlaylistCoordinates(web:WebClient, objectMapper:ObjectMapper, uriBuilder:UriComponentsBuilder): JsonNode = withWebClientExceptionLogging {
     val variables = objectMapper.createObjectNode()
-      .put("limit", 200)
-      .put("offset", 0)
-      .put("textFilter", "")
-      .putNull("order")
-      .putNull("folderUri")
-      .put("flatten", false)
-      .put("includeFoldersWhenFlattening", true)
-      .put("withCuration", false)
       .set[ObjectNode]("expandedFolders", objectMapper.createArrayNode())
       .set[ObjectNode]("features", objectMapper.createArrayNode().add("LIKED_SONGS").add("YOUR_EPISODES_V2"))
-      .set[ObjectNode]("filters", objectMapper.createArrayNode().add("Playlists"))
+      .put("flatten", false)
+      .putNull("folderUri")
+      .put("includeFoldersWhenFlattening", true)
+      .put("limit", 400)
+      .put("offset", 0)
+      .putNull("order")
+      .put("textFilter", "")
     val extensions = objectMapper.createObjectNode()
       .set[JsonNode]("persistedQuery", objectMapper.createObjectNode()
         .put("version", 1)
         .put("sha256Hash", "2de10199b2441d6e4ae875f27d2db361020c399fb10b03951120223fbed10b08"))
+    val body = objectMapper.createObjectNode()
+      .put("operationName", "libraryV3")
+      .set[ObjectNode]("variables", variables)
+      .set[ObjectNode]("extensions", extensions)
+
     val uri = uriBuilder
-      .path("pathfinder/v1/query")
-      .queryParam("operationName", "libraryV3")
-      .queryParam("variables", encode(variables.toString, UTF_8))
-      .queryParam("extensions", encode(extensions.toString, UTF_8))
+      .path("pathfinder/v2/query")
       .build(true)
       .toUri
 
-    web.get()
-      .uri(uri).asInstanceOf[RequestHeadersSpec[_]]
-      .retrieve()
-      .bodyToMono(classOf[JsonNode])
-      .block()
+    callAPI(web, uri, body)
   }
 
   def playlistCoordinatesToNice(structure:JsonNode):Iterable[(String,String)] = {
@@ -116,10 +112,13 @@ object SpotifyDataUtil {
       .get("items").asScala
       .map(_.get("item").get("data"))
       // Keep Nones for a moment until we validate sizes. They will be things like "Liked Songs" which appear in the playlist list but aren't real playlists
-      .map(item => item.get("uri").textValue() match {
-        case s"spotify:playlist:$id" => Some((item.get("name").textValue(), id))
-        case _=> None
-      })
+      .map(item => if (item == null || !item.hasNonNull("uri"))
+          None
+        else
+          item.get("uri").textValue() match {
+            case s"spotify:playlist:$id" => Some((item.get("name").textValue(), id))
+            case _=> None
+          })
 
     val actualSize = result.size
     val reportedSize = playlists.get("totalCount").intValue()
@@ -152,20 +151,19 @@ object SpotifyDataUtil {
       .set[JsonNode]("persistedQuery", objectMapper.getNodeFactory.objectNode()
         .put("version", 1)
         .put("sha256Hash", "837211ef46f604a73cd3d051f12ee63c81aca4ec6eb18e227b0629a7b36adad3"))
+    val body = objectMapper.createObjectNode()
+      .put("operationName", "fetchPlaylistContents")
+      .set[ObjectNode]("variables", variables)
+      .set[ObjectNode]("extensions", extensions)
+
     val uri = uriBuilder
       .path("pathfinder/v2/query")
-      .queryParam("operationName", "fetchPlaylistContents")
-      .queryParam("variables", encode(variables.toString, UTF_8))
-      .queryParam("extensions", encode(extensions.toString, UTF_8))
       .build(true)
       .toUri
 
     try
-      web.post()
-        .uri(uri).asInstanceOf[RequestHeadersSpec[_]]
-        .retrieve()
-        .bodyToMono(classOf[JsonNode])
-        .block()
+      callAPI(web, uri, body)
+
     catch {
       case e: Forbidden => System.err.println(e.getResponseBodyAsString); e.printStackTrace(); throw e
       case e: Unauthorized => System.err.println(e.getResponseBodyAsString); e.printStackTrace(); throw e
@@ -175,6 +173,28 @@ object SpotifyDataUtil {
       case _: NotFound => null
     }
   }
+
+  private def callAPI(web: WebClient, uri: URI, body: ObjectNode) =
+    web.post()
+      .uri(uri).asInstanceOf[RequestBodyUriSpec]
+      .contentType(MediaType.APPLICATION_JSON)
+
+      // One of these bastards is used to sus out hacks like this very one
+      .header("app-platform", "WebPlayer")
+      .header("Host", "api-partner.spotify.com")
+      .header("Origin", "https://open.spotify.com")
+      .header("Referer", "https://open.spotify.com/")
+      .header("Sec-Fetch-Dest", "empty")
+      .header("Sec-Fetch-Mode", "cors")
+      .header("Sec-Fetch-Site", "same-site")
+      .header("spotify-app-version", "1.2.75.269.gee97f28c")
+      .header("TE", "trailers")
+      .header("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0")
+
+      .bodyValue(body.toString).asInstanceOf[RequestHeadersUriSpec[_]]
+      .retrieve()
+      .bodyToMono(classOf[JsonNode])
+      .block()
 
   private def playlistStructureToNice(objectMapper:ObjectMapper, playlistStructure:JsonNode) = ns {
     val playlist = playlistStructure
