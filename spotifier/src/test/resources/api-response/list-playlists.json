@@ -1,0 +1,36 @@
+{
+  "items": [
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/playlist/231LTVY2mzlP7NKtTQOw9y"
+      },
+      "href": "https://api.spotify.com/v1/playlists/231LTVY2mzlP7NKtTQOw9y",
+      "id": "231LTVY2mzlP7NKtTQOw9y",
+      "name": "Mezzo Piano",
+      "owner": {
+        "display_name": "teonoo7"
+      },
+      "snapshot_id": "AAAAJHAhfZLtJ+jDej+ez1aFjYdu7ES2",
+      "tracks": {
+        "href": "https://api.spotify.com/v1/playlists/231LTVY2mzlP7NKtTQOw9y/tracks",
+        "total": 25
+      },
+      "type": "playlist"
+    },{
+      "external_urls": {
+        "spotify": "https://open.spotify.com/playlist/121w08VfKNdVdilr8zhSKW"
+      },
+      "href": "https://api.spotify.com/v1/playlists/121w08VfKNdVdilr8zhSKW",
+      "id": "121w08VfKNdVdilr8zhSKW",
+      "name": "Cântece din poezii",
+      "owner": {
+        "display_name": "foreigner"
+      },
+      "snapshot_id": "AAAAFl6rfWPFFJW0r4we0HSPp7fo2y0m",
+      "tracks": {
+        "href": "https://api.spotify.com/v1/playlists/121w08VfKNdVdilr8zhSKW/tracks",
+        "total": 12
+      }
+    }
+  ]
+}

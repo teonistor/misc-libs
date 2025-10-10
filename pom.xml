@@ -19,6 +19,7 @@
         <module>scalamacros</module>
         <module>scalamacros-test</module>
         <module>scalatest-utils</module>
+        <module>spotifier</module>
         <module>stream-utils</module>
         <module>usual-libs-testing</module>
         <module>usual-libs-scalatest</module>
