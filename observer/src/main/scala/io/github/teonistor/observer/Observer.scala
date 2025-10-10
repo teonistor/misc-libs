@@ -59,7 +59,7 @@ class Observer {
             None
 
           } catch {
-            case e =>
+            case e: Throwable =>
               log.error("Could not get old content from bucket", e)
               publishNotification("Site Observer detected a change",
                 s"""
