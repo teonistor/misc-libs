@@ -5,13 +5,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version>
+        <version>3.5.6</version>
     </parent>
     <packaging>pom</packaging>
 
     <groupId>io.github.teonistor</groupId>
     <artifactId>usual-suspects</artifactId>
-    <version>1.0.8-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <description>Miscellaneous libraries falling out of toy projects</description>
 
     <modules>
@@ -27,48 +27,46 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>13</java.version>
+        <java.version>22</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <amazon-s3-encryption-client-java.version>3.1.2</amazon-s3-encryption-client-java.version>
-        <aws-java-sdk.version>1.12.691</aws-java-sdk.version>
-        <aws-lambda-java-core.version>1.2.3</aws-lambda-java-core.version>
-        <aws-lambda-java-events.version>3.11.4</aws-lambda-java-events.version>
-        <awssdk.version>2.25.21</awssdk.version>
-        <commons-collections4.version>4.4</commons-collections4.version>
+        <amazon-s3-encryption-client-java.version>3.4.0</amazon-s3-encryption-client-java.version>
+        <aws-java-sdk.version>1.12.791</aws-java-sdk.version>
+        <aws-lambda-java-core.version>1.4.0</aws-lambda-java-core.version>
+        <aws-lambda-java-events.version>3.16.1</aws-lambda-java-events.version>
+        <awssdk.version>2.34.0</awssdk.version>
+        <commons-collections4.version>4.5.0</commons-collections4.version>
         <flexmark.version>0.64.8</flexmark.version>
-        <guava.version>32.1.3-jre</guava.version>
-        <jackson.version>2.13.4</jackson.version>
-        <jfreesvg.version>3.4.3</jfreesvg.version>
-        <jjwt.version>0.12.3</jjwt.version>
-        <mockito-scala.version>1.17.27</mockito-scala.version>
-        <!-- CAUTION: Do not 2.13.10! But above that may be fine, haven't tried -->
-        <scala.version>2.13.9</scala.version>
-        <scalatest.version>3.2.17</scalatest.version>
-        <vavr.version>0.10.4</vavr.version>
+        <guava.version>33.5.0-jre</guava.version>
+        <javax.mail.version>1.6.2</javax.mail.version>
+        <jfreesvg.version>3.4.4</jfreesvg.version>
+        <jjwt.version>0.13.0</jjwt.version>
+        <mockito.version>5.18.0</mockito.version>
+        <mockito-scala.version>2.0.0</mockito-scala.version>
+        <scala.version>2.13.16</scala.version>
+        <scalatest.version>3.2.19</scalatest.version>
+        <vavr.version>0.10.7</vavr.version>
         <vavr-jackson.version>0.10.3</vavr-jackson.version>
-        <!-- Would like 3.4.2 but it needs Jakarta packages and I don't have the tenacity to move past Spring Boot 2.* right now -->
-        <wiremock.version>2.27.2</wiremock.version>
+        <wiremock.version>4.0.0-beta.15</wiremock.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>io.github.teonistor</groupId>
                 <artifactId>scalamacros</artifactId>
-                <version>1.0.8-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.github.teonistor</groupId>
                 <artifactId>scalatest-utils</artifactId>
-                <version>1.0.8-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.github.teonistor</groupId>
                 <artifactId>stream-utils</artifactId>
-                <version>1.0.8-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
@@ -102,6 +100,11 @@
                 <version>${aws-lambda-java-events.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>${javax.mail.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>${commons-collections4.version}</version>
@@ -115,31 +118,6 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-scala_2.13</artifactId>
-                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.jfree</groupId>
@@ -183,10 +161,9 @@
                 <version>${scalatest.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.tomakehurst</groupId>
+                <groupId>org.wiremock</groupId>
                 <artifactId>wiremock</artifactId>
                 <version>${wiremock.version}</version>
-                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
